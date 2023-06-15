@@ -1,9 +1,8 @@
-import numpy as np
 import jax
+import numpy as np
 
 
-def euler(init, vector_field, h, N):
-
+def solver(init, vector_field, h, N):
     def body(x, t):
         out = x + h * vector_field(x, t)
         return out, None
