@@ -1,11 +1,9 @@
 import jax
 import jax.numpy as jnp
-import matplotlib.pyplot as plt
 from jax import grad
 
 from bayesian_ode_solver.ode_solvers import euler
-from foster_polynomial import get_approx as parabola_approx
-
+from bayesian_ode_solver.foster_polynomial import get_approx as parabola_approx
 
 def sde_solver(
         key,
@@ -42,32 +40,9 @@ def sde_solver(
 
 def wrapped_euler(_key, init, vector_field, T):
     # 10 points euler
-    M = 1_000
+    M = 100_000
     return euler(init=init, vector_field=vector_field, h=T / M, N=M)
 
 
 def parabola_sde_solver_euler(key, drift, sigma, x0, delta, N):
     return sde_solver(key=key, drift=drift, sigma=sigma, x0=x0, bm=parabola_approx, delta=delta, N=N, ode_int=wrapped_euler)
-
-
-
-drift = lambda x, t: 0
-sigma = lambda x, t: 1
-delta = 0.001
-x0 = 1.0
-N = 1
-
-JAX_KEY = jax.random.PRNGKey(1337)
-
-@jax.vmap
-def wrapped_parabola(key_op):
-    return parabola_sde_solver_euler(key_op, drift, sigma, x0, delta, N)
-
-keys = jax.random.split(JAX_KEY, 1_000)
-
-linspaces, sols = wrapped_parabola(keys)
-# print(sol)
-print(sols.mean())
-print(sols.std())
-# plt.plot(linspaces[0], sols.T)
-plt.show()
