@@ -50,4 +50,4 @@ def test_path_integral():
     trapz = jax.vmap(jnp.trapz, in_axes=[1, None])(ys, linspace)
 
     npt.assert_almost_equal(trapz.mean(), 0, decimal=2)
-    npt.assert_almost_equal(trapz.var(), h / 3, decimal=2)
+    npt.assert_almost_equal(trapz.var(), h ** 3 / 3, decimal=2)
