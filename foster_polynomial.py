@@ -1,11 +1,20 @@
-import jax.random
-import numpy as np
+import math
 
-def parabolas(dt, N, key):
-    key = jax.random.PRNGKey(key)
-    key, *subkeys = jax.random.split(key, 3)
-    coeffs = np.sqrt(dt) * np.array([jax.random.normal(key=subkeys[0], shape=(N+1, )), 1/np.sqrt(2)*jax.random.normal(key=subkeys[1], shape=(N+1, ))]) #increments and H_{tk,tk+1}
-    e0 = lambda t: t
-    e1 = lambda t: np.sqrt(6)*t*(t-1)
-    return [lambda t: e0(t/dt)*coeffs[0][i] + e1(t/dt)*coeffs[1][i] for i in range(N)]
+import jax
+import jax.numpy as jnp
 
+
+def get_approx():
+    def parabolas(key, dt):
+        eps_0, eps_1 = jax.random.normal(key, shape=(2,))
+
+        eps_0 *= jnp.sqrt(dt)
+        eps_1 *= jnp.sqrt(0.5 * dt)
+
+        return eps_0, eps_1
+
+    def eval_parabola(t, dt, a, b):
+        u = t / dt
+        return a * u + b * math.sqrt(6) * u * (u - 1)
+
+    return parabolas, eval_parabola
