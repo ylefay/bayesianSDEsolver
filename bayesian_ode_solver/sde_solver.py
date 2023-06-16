@@ -37,12 +37,3 @@ def sde_solver(
 
     return ts, samples
 
-
-def wrapped_euler(_key, init, vector_field, T):
-    # 10 points euler
-    M = 100_000
-    return euler(init=init, vector_field=vector_field, h=T / M, N=M)
-
-
-def parabola_sde_solver_euler(key, drift, sigma, x0, delta, N):
-    return sde_solver(key=key, drift=drift, sigma=sigma, x0=x0, bm=parabola_approx, delta=delta, N=N, ode_int=wrapped_euler)
