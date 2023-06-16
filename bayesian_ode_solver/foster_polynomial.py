@@ -3,8 +3,8 @@ import math
 import jax
 import jax.numpy as jnp
 
-
 def get_approx():
+    # this gives the parabola approximation of a Brownian motion over a time interval of length dt.
     def parabolas(key, dt):
         eps_0, eps_1 = jax.random.normal(key, shape=(2,))
 

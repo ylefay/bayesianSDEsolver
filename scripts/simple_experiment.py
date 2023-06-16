@@ -18,8 +18,7 @@ delta = 1 / N
 JAX_KEY = jax.random.PRNGKey(1337)
 
 def wrapped_euler(_key, init, vector_field, T):
-    # 10 points euler
-    M = 100
+    M = 100 # points for the Euler method
     return euler(init=init, vector_field=vector_field, h=T / M, N=M)
 
 
@@ -34,5 +33,3 @@ def wrapped_parabola(key_op):
 keys = jax.random.split(JAX_KEY, 1_000)
 
 linspaces, sols = wrapped_parabola(keys)
-print(sols[:, -1].std())
-print(sols[:, -1].mean())

@@ -2,8 +2,6 @@ import jax
 import jax.numpy as jnp
 from jax import grad
 
-from bayesian_ode_solver.ode_solvers import euler
-from bayesian_ode_solver.foster_polynomial import get_approx as parabola_approx
 
 def sde_solver(
         key,
@@ -14,7 +12,6 @@ def sde_solver(
         delta,
         N,
         ode_int,
-        batch_size=None,
 ):
     init = x0
     get_coeffs, eval_fn = bm()

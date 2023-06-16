@@ -8,8 +8,6 @@ import jax.numpy as jnp
 
 
 
-
-
 def test_gbm():
     JAX_KEY = jax.random.PRNGKey(1337)
     keys = jax.random.split(JAX_KEY, 1_000)

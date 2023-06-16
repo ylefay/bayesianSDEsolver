@@ -2,13 +2,13 @@ from functools import partial
 
 import jax.numpy as jnp
 import jax.random
-import numpy as np
 import numpy.testing as npt
 
 from bayesian_ode_solver.foster_polynomial import get_approx as parabola_approx
 
 
 def test_moments():
+    # this tests that the parabola approximation has mean 0 and variance h at time h.
     N = 1_000
     h = 1 / N
 
@@ -28,7 +28,7 @@ def test_moments():
 
 
 def test_path_integral():
-    # this tests that the integral of u * dWu has mean 0 and variance 1/3,
+    # this tests that the integral of u * dWu has mean 0 and variance h ** 3 / 3,
     # where dWu is the parabola approximation.
     N, M = 500, 10_000
     h = 0.5

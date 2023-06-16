@@ -12,7 +12,7 @@ except Exception as e:
 
 setuptools.setup(
     name="bayesian_sde_solver",
-    author="Yvann Le Fay",
+    author="Yvann Le Fay, Adrien Corenflos",
     description="Bayesian SDE solver",
     long_description=long_description,
     version="0.1",
@@ -26,7 +26,8 @@ setuptools.setup(
         "statsmodels>=0.13.5",
         "tensorflow_probability>=0.19.0",
         "tqdm>=4.64.1",
-
+        "numpy>=1.24.3",
+        "probdiffeq>=0.1.4",
     ],
     long_description_content_type="text/markdown",
     keywords="probabilistic state space bayesian statistics sampling algorithms sde",
