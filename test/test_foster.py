@@ -38,16 +38,20 @@ def test_path_integral():
 
     get_coeffs, eval_fn = parabola_approx()
     coeffs = jax.vmap(get_coeffs, in_axes=(0, None))(keys, h)
-    linspace = jnp.linspace(0, h, N)
+    linspace = jnp.linspace(0, h, N+1)
 
     @partial(jax.vmap, in_axes=(0, None, None))
     @partial(jax.vmap, in_axes=(None, 0, 0))
     def integrand_mean(t, a, b):
         func = lambda z: eval_fn(z, h, a, b)
-        return t * jax.grad(func)(t)
+        return t * jax.jacfwd(func)(t)
 
     ys = integrand_mean(linspace, *coeffs)
-    trapz = jax.vmap(jnp.trapz, in_axes=[1, None])(ys, linspace)
+    trapz = jax.vmap(jnp.trapz, in_axes=[1, None])(ys, linspace) #Adrien, I let you fix that
 
     npt.assert_almost_equal(trapz.mean(), 0, decimal=2)
     npt.assert_almost_equal(trapz.var(), h ** 3 / 3, decimal=2)
+
+def test_path_integral_md():
+    # same as previous but multidimensional
+    raise NotImplementedError
