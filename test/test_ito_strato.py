@@ -1,17 +1,17 @@
-from bayesian_ode_solver.ito_stratonovich import to_stratonovich, to_ito
+from bayesian_sde_solver.ito_stratonovich import to_stratonovich, to_ito
 import numpy.testing as npt
 import jax.numpy as jnp
 
 def test_ito_strato_symmetry():
     # this tests that the ito to stratonovich conversion is the inverse of
     # the stratonovich to ito conversion and vice versa
-    drift = lambda x, t: 1.0
-    diff = lambda x, t: x
+    drift = lambda x, t: jnp.ones((1, ))
+    diff = lambda x, t: jnp.array([x])
     _drift, _diff = to_stratonovich(*to_ito(drift, diff))
-    x = 0.5
+    x = jnp.ones((1, )) * 0.5
     t = 1.0
 
-    npt.assert_equal(_drift(x, t), jnp.array([drift(x, t)]))
+    npt.assert_equal(_drift(x, t), drift(x, t))
 
     drift = lambda x, t: x
     diff = lambda x, t: jnp.array([[x[0], 2 * x[1]],
@@ -38,11 +38,11 @@ def test_ito_strato_diagonal():
 def test_ito_strato_1d():
     # same as precedent but in 1d
     drift = lambda x, t: 1.0
-    diff = lambda x, t: x
-    x = 0.5
+    diff = lambda x, t: jnp.array([x])
+    x = jnp.ones((1, )) * 0.5
     t = 1.0
     strat_drift, strat_diff = to_stratonovich(drift, diff)
-    npt.assert_equal(strat_drift(x, t), jnp.array([1.0 - x * 0.5]))
+    npt.assert_equal(strat_drift(x, t), 1.0 - x * 0.5)
 
 def test_ito_strato_md():
     # this tests that the correction is indeed correct,

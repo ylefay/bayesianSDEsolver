@@ -1,16 +1,17 @@
 import jax
+import jax.numpy as jnp
 import matplotlib.pyplot as plt
-from bayesian_ode_solver.ode_solvers import euler
-from bayesian_ode_solver.sde_solver import sde_solver
-from bayesian_ode_solver.foster_polynomial import get_approx as parabola_approx
-from bayesian_ode_solver.ito_stratonovich import to_stratonovich
+from bayesian_sde_solver.ode_solvers import euler
+from bayesian_sde_solver.sde_solver import sde_solver
+from bayesian_sde_solver.foster_polynomial import get_approx as parabola_approx
+from bayesian_sde_solver.ito_stratonovich import to_stratonovich
 
 drift = lambda x, t: x
-sigma = lambda x, t: x
+sigma = lambda x, t: jnp.array([x])
 
 drift, sigma = to_stratonovich(drift, sigma)
 
-x0 = 1.0
+x0 = jnp.ones((1, ))
 N = 100
 delta = 1 / N
 
@@ -33,3 +34,4 @@ def wrapped_parabola(key_op):
 keys = jax.random.split(JAX_KEY, 1_000)
 
 linspaces, sols = wrapped_parabola(keys)
+print(sols[:, -1].mean())

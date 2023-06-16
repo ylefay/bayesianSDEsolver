@@ -1,8 +1,8 @@
 import jax
-from bayesian_ode_solver.ode_solvers import euler
-from bayesian_ode_solver.sde_solver import sde_solver
-from bayesian_ode_solver.foster_polynomial import get_approx as parabola_approx
-from bayesian_ode_solver.ito_stratonovich import to_stratonovich
+from bayesian_sde_solver.ode_solvers import euler
+from bayesian_sde_solver.sde_solver import sde_solver
+from bayesian_sde_solver.foster_polynomial import get_approx as parabola_approx
+from bayesian_sde_solver.ito_stratonovich import to_stratonovich
 import numpy.testing as npt
 import jax.numpy as jnp
 
@@ -15,11 +15,11 @@ def test_gbm():
     a = 1
     b = 1
     drift = lambda x, t: a * x
-    sigma = lambda x, t: b * x
+    sigma = lambda x, t: b * jnp.array([x])
 
     drift, sigma = to_stratonovich(drift, sigma)
 
-    x0 = 1.0
+    x0 = jnp.ones((1,))
     N = 100
     delta = 1 / N
 

@@ -1,14 +1,15 @@
 import numpy as np
 import numpy.testing as npt
+import jax.numpy as jnp
 
-from bayesian_ode_solver.ode_solvers import euler
+from bayesian_sde_solver.ode_solvers import euler
 
 
 def test_exponential():
     # this tests that the euler method for the vector field f(x) = x gives  the exponential function.
     N = 1_000
     h = 1 / N
-    x0 = 1.0
+    x0 = jnp.ones((1, ))
 
     def vector_field(x, t):
         return x

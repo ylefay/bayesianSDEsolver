@@ -4,7 +4,7 @@ import jax.numpy as jnp
 import jax.random
 import numpy.testing as npt
 
-from bayesian_ode_solver.foster_polynomial import get_approx as parabola_approx
+from bayesian_sde_solver.foster_polynomial import get_approx as parabola_approx
 
 
 def test_moments():
