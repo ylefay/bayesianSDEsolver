@@ -30,8 +30,8 @@ def test_ito_strato_diagonal():
 
 def test_ito_strato_symmetry():
     drift = lambda x, t: x
-    diff = lambda x, t: jnp.array([[x[0], x[1]],
-                                   [x[0]+x[1], x[1]]])
+    diff = lambda x, t: jnp.array([[x[0], 2*x[1]],
+                                   [3*x[0]+4*x[1], 5*x[1]]])
 
     tilde_drift, tilde_diff = to_stratonovich(*to_ito(drift, diff))
 
