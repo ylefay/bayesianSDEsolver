@@ -19,7 +19,7 @@ def test_moments():
 
     @jax.vmap
     def get_increments(key):
-        coeffs = get_coeffs(key, h, 1)
+        coeffs = get_coeffs(key, h)
         return eval_fn(h, h, *coeffs)
 
     increments = get_increments(keys)
@@ -36,8 +36,8 @@ def test_path_integral():
     seed = jax.random.PRNGKey(1337)
     keys = jax.random.split(seed, M)
 
-    get_coeffs, eval_fn = parabola_approx()
-    coeffs = jax.vmap(get_coeffs, in_axes=(0, None, None))(keys, h, 2)
+    get_coeffs, eval_fn = parabola_approx(2)
+    coeffs = jax.vmap(get_coeffs, in_axes=(0, None))(keys, h)
     linspace = jnp.linspace(0, h, N + 1)
 
     @partial(jax.vmap, in_axes=(0, None, None))

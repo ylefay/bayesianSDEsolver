@@ -17,9 +17,10 @@ delta = 1 / N
 
 JAX_KEY = jax.random.PRNGKey(1337)
 
+M = 100  # points for the Euler method
+
 
 def wrapped_euler(_key, init, vector_field, T):
-    M = 100  # points for the Euler method
     return euler(init=init, vector_field=vector_field, h=T / M, N=M)
 
 
