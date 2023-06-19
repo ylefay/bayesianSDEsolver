@@ -8,5 +8,5 @@ def solver(init, vector_field, h, N):
         return out, None
 
     inps = np.linspace(0, N * h - h, N)
-    y, _ = jax.lax.scan(body, init, inps)
+    y, samples = jax.lax.scan(body, init, inps)
     return y
