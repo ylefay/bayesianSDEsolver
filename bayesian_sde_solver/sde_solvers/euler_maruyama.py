@@ -9,8 +9,8 @@ def solver(key, init, drift, sigma, h, N):
     def body(x, inp):
         key_k, t = inp
         bm_key = jax.random.split(key_k, 1)
-        dW = jax.random.normal(bm_key, shape=(dim, ))
-        out = x + h * drift(x, t) + h**0.5 * sigma(x, t) @ dW
+        dW = h ** 0.5 * jax.random.normal(bm_key, shape=(dim, ))
+        out = x + h * drift(x, t) + sigma(x, t) @ dW
         return out, out
 
     keys = jax.random.split(key, N)
