@@ -23,9 +23,6 @@ setuptools.setup(
         "jaxlib>=0.3.25",
         "matplotlib>=3.6.3"
         "pytest",
-        "statsmodels>=0.13.5",
-        "tensorflow_probability>=0.19.0",
-        "tqdm>=4.64.1",
         "numpy>=1.24.3",
         "probdiffeq>=0.1.4",
     ],

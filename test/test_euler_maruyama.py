@@ -1,6 +1,5 @@
 import jax.numpy as jnp
 import jax
-import numpy as np
 import numpy.testing as npt
 
 from bayesian_sde_solver.sde_solvers import euler_maruyama
