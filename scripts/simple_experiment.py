@@ -1,30 +1,32 @@
 import jax
 import jax.numpy as jnp
-import matplotlib.pyplot as plt
-from bayesian_sde_solver.ode_solvers import euler
-from bayesian_sde_solver.sde_solver import sde_solver
+
 from bayesian_sde_solver.foster_polynomial import get_approx as parabola_approx
 from bayesian_sde_solver.ito_stratonovich import to_stratonovich
+from bayesian_sde_solver.ode_solvers import euler
+from bayesian_sde_solver.sde_solver import sde_solver
 
 drift = lambda x, t: x
 sigma = lambda x, t: jnp.array([x])
 
 drift, sigma = to_stratonovich(drift, sigma)
 
-x0 = jnp.ones((1, ))
+x0 = jnp.ones((1,))
 N = 100
 delta = 1 / N
 
-
 JAX_KEY = jax.random.PRNGKey(1337)
 
+
 def wrapped_euler(_key, init, vector_field, T):
-    M = 100 # points for the Euler method
+    M = 100  # points for the Euler method
     return euler(init=init, vector_field=vector_field, h=T / M, N=M)
 
 
 def parabola_sde_solver_euler(key, drift, sigma, x0, delta, N):
-    return sde_solver(key=key, drift=drift, sigma=sigma, x0=x0, bm=parabola_approx, delta=delta, N=N, ode_int=wrapped_euler)
+    return sde_solver(key=key, drift=drift, sigma=sigma, x0=x0, bm=parabola_approx, delta=delta, N=N,
+                      ode_int=wrapped_euler)
+
 
 @jax.vmap
 def wrapped_parabola(key_op):

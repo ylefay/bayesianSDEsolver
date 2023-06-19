@@ -4,12 +4,11 @@ This is the companion code to the article *** by ***
 
 ## Installation
 
-
-
 ## Usage
 
 ## Reproducing the results of the article
-Please refer to 
+
+Please refer to
 
 ## License
 

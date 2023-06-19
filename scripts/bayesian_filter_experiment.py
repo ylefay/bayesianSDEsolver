@@ -1,11 +1,12 @@
-from probdiffeq import ivpsolvers, ivpsolve
-from probdiffeq.strategies import filters
-from probdiffeq.statespace import recipes
-import jax.numpy as jnp
 import jax
-from bayesian_sde_solver.sde_solver import sde_solver
+import jax.numpy as jnp
+from probdiffeq import ivpsolvers, ivpsolve
+from probdiffeq.statespace import recipes
+from probdiffeq.strategies import filters
+
 from bayesian_sde_solver.foster_polynomial import get_approx as parabola_approx
 from bayesian_sde_solver.ito_stratonovich import to_stratonovich
+from bayesian_sde_solver.sde_solver import sde_solver
 
 drift = lambda x, t: x
 sigma = lambda x, t: jnp.diag(x)
@@ -28,7 +29,8 @@ def wrapped_diffeq_filter(_key, init, vector_field, T):
     ts0 = ivpsolvers.solver_calibrationfree(*filters.filter(*recipes.ts0_iso(ode_order=1, num_derivatives=1)))
     ts = jnp.linspace(0, T, N + 1)
     solution = ivpsolve.solve_and_save_at(vector_field=vf, initial_values=(init,), solver=ts0, save_at=ts, dt0=T / N)
-    return solution.marginals.mean[-1,0,:] #return only the mean of the last point of the trajectory, you may want the covariance as well
+    return solution.marginals.mean[-1, 0,
+           :]  # return only the mean of the last point of the trajectory, you may want the covariance as well
 
 
 def parabola_sde_solver_filter(key, drift, sigma, x0, delta, N):

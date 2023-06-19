@@ -38,7 +38,7 @@ def test_path_integral():
 
     get_coeffs, eval_fn = parabola_approx()
     coeffs = jax.vmap(get_coeffs, in_axes=(0, None, None))(keys, h, 2)
-    linspace = jnp.linspace(0, h, N+1)
+    linspace = jnp.linspace(0, h, N + 1)
 
     @partial(jax.vmap, in_axes=(0, None, None))
     @partial(jax.vmap, in_axes=(None, 0, 0))
@@ -47,8 +47,9 @@ def test_path_integral():
         return t * jax.jacfwd(func)(t)
 
     ys = integrand_mean(linspace, *coeffs)
-    #trapz = jax.vmap(jnp.trapz, in_axes=[1, None])(ys, linspace, axis=0)
-    trapz = jnp.trapz(ys, linspace, axis=0)
+    # trapz = jax.vmap(jnp.trapz, in_axes=[[1, 2], None])(ys, linspace) #uni
+    trapz = jax.vmap(jax.vmap(jnp.trapz, in_axes=[1, None]), in_axes=[2, None])(ys, linspace)
+    # trapz = jnp.trapz(ys, linspace, axis=0) #works
 
-    npt.assert_array_almost_equal(trapz.mean(axis=0), jnp.array([0.0, 0.0]), decimal=2)
-    npt.assert_array_almost_equal(jnp.cov(trapz, rowvar=False), h ** 3 / 3 * jnp.identity(2), decimal=2)
+    npt.assert_array_almost_equal(trapz.mean(axis=1), jnp.array([0.0, 0.0]), decimal=2)
+    npt.assert_array_almost_equal(jnp.cov(trapz), h ** 3 / 3 * jnp.identity(2), decimal=2)
