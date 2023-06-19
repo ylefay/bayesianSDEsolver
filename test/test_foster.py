@@ -19,7 +19,7 @@ def test_moments():
 
     @jax.vmap
     def get_increments(key):
-        coeffs = get_coeffs(key, h)
+        coeffs = get_coeffs(key, h, 1)
         return eval_fn(h, h, *coeffs)
 
     increments = get_increments(keys)
@@ -28,7 +28,7 @@ def test_moments():
 
 
 def test_path_integral():
-    # this tests that the integral of u * dWu has mean 0 and variance h ** 3 / 3,
+    # this tests that the integral of u * dWu has mean 0 and variance h ** 3 / 3 identity,
     # where dWu is the parabola approximation.
     N, M = 500, 10_000
     h = 0.5
@@ -37,7 +37,7 @@ def test_path_integral():
     keys = jax.random.split(seed, M)
 
     get_coeffs, eval_fn = parabola_approx()
-    coeffs = jax.vmap(get_coeffs, in_axes=(0, None))(keys, h)
+    coeffs = jax.vmap(get_coeffs, in_axes=(0, None, None))(keys, h, 2)
     linspace = jnp.linspace(0, h, N+1)
 
     @partial(jax.vmap, in_axes=(0, None, None))
@@ -47,11 +47,8 @@ def test_path_integral():
         return t * jax.jacfwd(func)(t)
 
     ys = integrand_mean(linspace, *coeffs)
-    trapz = jax.vmap(jnp.trapz, in_axes=[1, None])(ys, linspace) #Adrien, I let you fix that
+    #trapz = jax.vmap(jnp.trapz, in_axes=[1, None])(ys, linspace, axis=0)
+    trapz = jnp.trapz(ys, linspace, axis=0)
 
-    npt.assert_almost_equal(trapz.mean(), 0, decimal=2)
-    npt.assert_almost_equal(trapz.var(), h ** 3 / 3, decimal=2)
-
-def test_path_integral_md():
-    # same as previous but multidimensional
-    raise NotImplementedError
+    npt.assert_array_almost_equal(trapz.mean(axis=0), jnp.array([0.0, 0.0]), decimal=2)
+    npt.assert_array_almost_equal(jnp.cov(trapz, rowvar=False), h ** 3 / 3 * jnp.identity(2), decimal=2)
