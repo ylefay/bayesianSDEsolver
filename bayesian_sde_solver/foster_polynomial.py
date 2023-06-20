@@ -1,8 +1,9 @@
 import math
+from functools import partial
 
 import jax
 import jax.numpy as jnp
-from functools import partial
+
 
 def get_approx(dim=1):
     # this gives the parabola approximation of a Brownian motion over a time interval of length dt.

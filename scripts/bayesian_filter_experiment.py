@@ -1,9 +1,11 @@
 import jax
 import jax.numpy as jnp
 
-from bayesian_sde_solver.ode_solvers import ekf0
 from bayesian_sde_solver.foster_polynomial import get_approx as parabola_approx
+from bayesian_sde_solver.ode_solvers import ekf0
 from bayesian_sde_solver.sde_solver import sde_solver
+
+
 def harmonic_oscillator_probdiff():
     #same as the test function in test/test_sde_solver_foster.py
     JAX_KEY = jax.random.PRNGKey(1337)
