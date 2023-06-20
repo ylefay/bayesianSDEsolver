@@ -4,7 +4,7 @@ import numpy.testing as npt
 from bayesian_sde_solver.ito_stratonovich import to_stratonovich, to_ito
 
 
-def test_ito_strato_symmetry():
+def test_symmetry():
     # this tests that the ito to stratonovich conversion is the inverse of
     # the stratonovich to ito conversion and vice versa
     drift = lambda x, t: jnp.ones((1,))
@@ -26,7 +26,7 @@ def test_ito_strato_symmetry():
     npt.assert_array_almost_equal(tilde_drift(x, t), drift(x, t))
 
 
-def test_ito_strato_diagonal():
+def test_diagonal():
     # this tests that in the case of a diagonal diffusion matrix,
     # the stratonovich drift is x - 0.5 * x * identity
     drift = lambda x, t: x
@@ -39,7 +39,7 @@ def test_ito_strato_diagonal():
     npt.assert_array_almost_equal(strat_drift(x, t), x - 0.5 * x)
 
 
-def test_ito_strato_1d():
+def test_1d():
     # same as precedent but in 1d
     drift = lambda x, t: 1.0
     diff = lambda x, t: jnp.array([x])
@@ -49,7 +49,7 @@ def test_ito_strato_1d():
     npt.assert_equal(strat_drift(x, t), 1.0 - x * 0.5)
 
 
-def test_ito_strato_md():
+def test_md():
     # this tests that the correction is indeed correct,
     # see Kloeden, Pattern, 1999, chapter 4.9.
     drift = lambda x, t: x

@@ -1,1 +1,2 @@
 from .euler_maruyama import solver as euler_maruyama
+from .hypoelliptic_diffusion_15_scheme import solver as hypoelliptic_diffusion_15_scheme
