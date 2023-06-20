@@ -1,9 +1,9 @@
 import jax
 import jax.numpy as jnp
 import numpy.testing as npt
-import matplotlib.pyplot as plt
 
 from bayesian_sde_solver.sde_solvers import hypoelliptic_diffusion_15_scheme
+
 
 def test_harmonic_oscillator():
     @jax.vmap

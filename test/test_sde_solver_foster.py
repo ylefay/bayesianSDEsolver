@@ -2,9 +2,9 @@ import jax
 import jax.numpy as jnp
 import numpy.testing as npt
 
-from bayesian_sde_solver.ode_solvers import ekf0, ekf1
 from bayesian_sde_solver.foster_polynomial import get_approx as parabola_approx
 from bayesian_sde_solver.ito_stratonovich import to_stratonovich
+from bayesian_sde_solver.ode_solvers import ekf0, ekf1
 from bayesian_sde_solver.ode_solvers import euler
 from bayesian_sde_solver.sde_solver import sde_solver
 
