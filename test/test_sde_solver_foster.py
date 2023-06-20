@@ -39,7 +39,7 @@ def test_gbm_euler():
     npt.assert_almost_equal(sols[:, -1].mean(), x0 * jnp.exp(a), decimal=1)
 
 
-def test_gbm_probdiff():
+def test_gbm_ekf0():
     a = 1
     b = 1
     drift = lambda x, t: a * x
@@ -69,7 +69,7 @@ def test_gbm_probdiff():
 
 def test_harmonic_oscillator_euler():
     JAX_KEY = jax.random.PRNGKey(1337)
-    keys = jax.random.split(JAX_KEY, 10_00)
+    keys = jax.random.split(JAX_KEY, 1_000)
 
     gamma = 1.0
     D = 1.0
@@ -100,9 +100,9 @@ def test_harmonic_oscillator_euler():
                                                [1 / 2 * t ** 2 - 1 / 2 * t ** 3 * gamma,
                                                 t - gamma * t ** 2 + 1 / 3 * t ** 3 * (2 * gamma ** 2 - D)]])
     npt.assert_array_almost_equal(jnp.cov(sols[:, 1], rowvar=False), theoretical_variance_up_to_order3(1), decimal=3)
-def test_harmonic_oscillator_probdiff():
+def test_harmonic_oscillator_ekf0():
     JAX_KEY = jax.random.PRNGKey(1337)
-    keys = jax.random.split(JAX_KEY, 10_00)
+    keys = jax.random.split(JAX_KEY, 1_000)
 
     gamma = 1.0
     D = 1.0
@@ -131,3 +131,5 @@ def test_harmonic_oscillator_probdiff():
                                                [1 / 2 * t ** 2-1/2*t**3*gamma, t-gamma * t**2+1/3 * t ** 3 * (2*gamma**2-D)]])
 
     npt.assert_array_almost_equal(jnp.cov(sols[:, 1], rowvar=False), theoretical_variance_up_to_order3(1), decimal=2)
+
+

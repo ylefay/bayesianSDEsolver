@@ -9,7 +9,7 @@ def test_gbm_moment():
     # this tests the moments of the EM method for the geometric brownian motion sde.
 
     JAX_KEY = jax.random.PRNGKey(1337)
-    keys = jax.random.split(JAX_KEY, 100_000)
+    keys = jax.random.split(JAX_KEY, 1_000_000)
 
     a = 1
     b = 1
