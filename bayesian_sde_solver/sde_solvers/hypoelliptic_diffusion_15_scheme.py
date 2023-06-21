@@ -37,7 +37,7 @@ def solver(key, init, drift, sigma, h, N):
         return out, out
 
     keys = jax.random.split(key, N)
-    ts = jnp.linspace(0, N * h - h, N)
+    ts = jnp.linspace(0, N * h, N + 1)
     inps = keys
     _, samples = jax.lax.scan(body, init, inps)
     samples = jnp.insert(samples, 0, init, axis=0)

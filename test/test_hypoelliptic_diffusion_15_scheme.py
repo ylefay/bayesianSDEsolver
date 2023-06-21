@@ -53,8 +53,8 @@ def test_fitzhugh_nagumo():
     x2 = 0.4
     x0 = jnp.array([x1, x2])
 
-    N = 100
-    h = 1 / N
+    N = 10000
+    h = 10 / N
 
     def theoretical_mean_up_to_order_2(k):
         t = k * h
@@ -66,6 +66,7 @@ def test_fitzhugh_nagumo():
                                      [- 1 / 2 * t ** 2 * 1 / eps, t - t ** 2 ]])
 
     linspaces, sols = wrapped_hypoelliptic_15(keys)
+
     npt.assert_array_almost_equal(jnp.cov(sols[:, 1], rowvar=False), theoretical_variance_up_to_order3(1), decimal=2)
     npt.assert_array_almost_equal(jnp.mean(sols[:, 1], axis=0), theoretical_mean_up_to_order_2(1), decimal=2)
 
