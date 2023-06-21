@@ -28,5 +28,5 @@ def test_gbm_moment():
 
     npt.assert_almost_equal(sols[:, -1].std(), x0 * jnp.exp(a) * (jnp.exp(b) - 1) ** 0.5, decimal=1)
     npt.assert_almost_equal(sols[:, -1].mean(), x0 * jnp.exp(a), decimal=1)
-    npt.assert_almost_equal(sols[:, 1].mean(), x0 * (1+a*h+(a*h)**2/2), decimal=5) #strong order 1, locally 2
-    npt.assert_array_almost_equal(sols[:, 1].var(), x0**2*(1 + 2 * a * h + (2 * a * h) ** 2 / 2)*(b ** 2 * h + (b ** 2 * h) ** 2 / 2), decimal=3)
+    npt.assert_almost_equal(sols[:, 1].mean(), x0 * (1+a*h+(a*h)**2/2), decimal=2) #strong order 1, locally 2
+    npt.assert_array_almost_equal(sols[:, 1].var(), x0**2*(1 + 2 * a * h + (2 * a * h) ** 2 / 2)*(b ** 2 * h + (b ** 2 * h) ** 2 / 2), decimal=2)

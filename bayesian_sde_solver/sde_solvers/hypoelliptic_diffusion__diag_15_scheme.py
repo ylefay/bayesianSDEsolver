@@ -65,6 +65,9 @@ def exact_solver(key, init, drift, sigma, h, N):
         diagsigma = jnp.diag(sig(x) @ sig(x).T)
         return jax.vmap(lambda diagh: jnp.dot(diagsigma, diagh.T))(diagH)
 
+    laplacegamma = lambda x: laplaceweighted(sigma, diagGamma, x)
+    laplacedrift = lambda x: laplaceweighted(sigma, drift, x)
+
     def body(x, key):
         key_k = key
         bm_key = jax.random.split(key_k, 1)
@@ -75,10 +78,10 @@ def exact_solver(key, init, drift, sigma, h, N):
         first_term = partialudrift(x) @ Gamma(x) @ zeta_k #partial_u(a, A) Gamma zeta
         second_term_U = Gamma(x) @ eta_k + partialuA(x) @ Gamma(x) @ zeta_k + \
                       0.5 * partialuGamma_diag(x)  @ Gamma(x) @ (jnp.square(eta_k) - jnp.ones((dim - 1, )) * h) + \
-                      partialuGamma_diag(x) @ A(x) @ (h * eta_k - zeta_k) + 0.5 * laplaceweighted(sigma, diagGamma, x) @ (h * eta_k - zeta_k) + \
-                      0.5 * (partialuGamma_diag(x)  @ partialuGamma_diag(x) @ Gamma(x) + laplaceweighted(sigma, diagGamma, x) @ (1 / 3 * eta_k @ eta_k.T - h * jnp.ones((dim - 1, )))) @ eta_k
+                      partialuGamma_diag(x) @ A(x) @ (h * eta_k - zeta_k) + 0.5 * laplacegamma(x) @ (h * eta_k - zeta_k) + \
+                      0.5 * (partialuGamma_diag(x)  @ partialuGamma_diag(x) @ Gamma(x) + laplacegamma(x) @ (1 / 3 * eta_k @ eta_k.T - h * jnp.ones((dim - 1, )))) @ eta_k
         out = x + h * drift(x) + h ** 2 / 2 * partialuvdrift(x) @ drift(x) + \
-              h ** 2 / 4 * laplaceweighted(sigma, drift, x) + first_term + jnp.insert(second_term_U, 0, 0)
+              h ** 2 / 4 * laplacedrift(x) + first_term + jnp.insert(second_term_U, 0, 0)
         return out, out
 
     keys = jax.random.split(key, N)
