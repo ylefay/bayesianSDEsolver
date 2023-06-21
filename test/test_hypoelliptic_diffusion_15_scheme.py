@@ -117,8 +117,9 @@ def test_synaptic_conductance():
         ])
 
     linspaces, sols = wrapped_hypoelliptic_15(keys)
-    npt.assert_array_almost_equal(jnp.mean(sols[:, 1], axis=0), theoretical_mean_up_to_order_2(1), decimal=2)
     def theoretical_variance_up_to_order_3_first_coordinate(k):
         t = k * h
         return t ** 3 / (3 * C**2) * ((x0[0] - V_E)**2 * sig_E ** 2 * x0[2] + (x0[0] - V_I)**2 * sig_I ** 2 * x0[2])
-    npt.assert_almost_equal(sols[:, 1, 0].var(), theoretical_variance_up_to_order_3_first_coordinate(1), decimal=3)
+
+    npt.assert_array_almost_equal(jnp.mean(sols[:, 1], axis=0), theoretical_mean_up_to_order_2(1), decimal=2)
+    npt.assert_almost_equal(sols[:, 4, 0].var(), theoretical_variance_up_to_order_3_first_coordinate(4), decimal=5)
