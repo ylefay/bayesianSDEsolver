@@ -1,6 +1,7 @@
 import jax
 import jax.numpy as jnp
 
+
 def solver(init, vector_field, h, N):
     def body(x, t):
         out = x + h * vector_field(x, t)
