@@ -1,5 +1,5 @@
-import jax.numpy as jnp
 import jax
+import jax.numpy as jnp
 from probdiffeq import ivpsolvers, ivpsolve
 from probdiffeq.statespace import recipes
 from probdiffeq.strategies import filters

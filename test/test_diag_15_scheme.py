@@ -4,9 +4,8 @@ import numpy.testing as npt
 
 from bayesian_sde_solver.sde_solvers import diag_15_scheme
 
+
 def test_synaptic_conductance():
-
-
     JAX_KEY = jax.random.PRNGKey(1337)
     keys = jax.random.split(JAX_KEY, 1_000)
 

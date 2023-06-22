@@ -2,11 +2,11 @@ import jax
 import jax.numpy as jnp
 import numpy.testing as npt
 
-from bayesian_sde_solver.ode_solvers import ieks
-
 from bayesian_sde_solver.foster_polynomial import get_approx as parabola_approx
 from bayesian_sde_solver.ito_stratonovich import to_stratonovich
+from bayesian_sde_solver.ode_solvers import ieks
 from bayesian_sde_solver.sde_solver import sde_solver
+
 
 def test_gbm_moment():
     # this tests the moments of the ieks method for the geometric brownian motion sde.
