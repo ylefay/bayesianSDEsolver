@@ -38,7 +38,7 @@ from bayesian_sde_solver.sde_solvers import hypoelliptic_diffusion_15_scheme
 
 @partial(jnp.vectorize, signature='()->(d,d)')
 def ibm_15(delta):
-    keys = jax.random.split(JAX_KEY, 1_000_0)
+    keys = jax.random.split(JAX_KEY, 1_000_00)
 
     drift = lambda x: jnp.dot(jnp.array([[0.0, 1.0], [0.0, 0.0]]), x)
     sigma = lambda x: jnp.array([[0.0], [1.0]])
@@ -55,18 +55,16 @@ def ibm_15(delta):
     return jnp.cov(sols[:, 1], rowvar=False)
 
 
-deltas = jnp.logspace(-3, -1, 100)
+deltas = jnp.logspace(-3, 0, 20)
 import numpy as np
 Ndeltas = np.ceil(1 / deltas)
-ibms = jnp.array([])
-for delta, N in zip(deltas, Ndeltas):
-    print(delta, N)
-    ibms = jnp.insert(ibms, 0, ibm(delta, int(N)))
+ibms = jnp.empty(shape=(2, 2))
+ibms = jnp.stack([ibm(delta, int(N))[0, 0]/delta**3 for delta, N in zip(deltas, Ndeltas)])
 
 #ibms = ibm(deltas)
 ibms_15 = ibm_15(deltas)
 print(ibms)
-plt.plot(1 / deltas, ibms[::-1, 0, 0] / deltas[::-1] ** 3)
+plt.plot(1 / deltas, ibms)
 plt.plot(1 / deltas, ibms_15[::-1, 0, 0] / deltas[::-1] ** 3, label="Ditlevsen & Samson")
 plt.legend()
 plt.show()
