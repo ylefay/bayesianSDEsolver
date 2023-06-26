@@ -4,7 +4,6 @@ import jax.numpy as jnp
 
 def solver(key, init, drift, sigma, h, N):
     # squared diagonal diffusion matrix
-    # not what we want, need to implement the scheme from kloeden, patten for commutative noise
 
     dim = drift(init).shape[0]
     assert dim == sigma(init).shape[1]
