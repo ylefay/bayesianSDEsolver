@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 
 from bayesian_sde_solver.foster_polynomial import get_approx as parabola_approx
 
-# This experiment is to test the divergence
-# of the expectancy of the exp of the integrated lipschitz constant
+# This experiment is to test the bound on
+# the expectancy of the exp of the integrated lipschitz constant
 
 seed = jax.random.PRNGKey(1337)
 keys = jax.random.split(seed, 100000)
