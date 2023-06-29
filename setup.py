@@ -25,6 +25,7 @@ setuptools.setup(
         "pytest",
         "numpy>=1.24.3",
         "probdiffeq>=0.1.4",
+        "parsmooth",
     ],
     long_description_content_type="text/markdown",
     keywords="probabilistic state space bayesian statistics sampling algorithms sde",
