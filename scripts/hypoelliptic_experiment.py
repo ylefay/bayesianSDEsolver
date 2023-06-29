@@ -22,7 +22,7 @@ def ibm(delta, N=20):
     x0 = jnp.ones((2,))
 
     def wrapped(_key, init, vector_field, T):
-        return ekf0(key=None, init=init, vector_field=vector_field, h=T / N, N=N)
+        return euler(init=init, vector_field=vector_field, h=T / N, N=N)
 
     @jax.vmap
     def wrapped_filter_parabola(key_op):
@@ -30,7 +30,7 @@ def ibm(delta, N=20):
                           ode_int=wrapped)
 
     _, sols = wrapped_filter_parabola(keys)
-    return jnp.cov(sols[:, 1], rowvar=False)
+    return jnp.cov(sols[:, -1], rowvar=False)
 
 
 from bayesian_sde_solver.sde_solvers import hypoelliptic_diffusion_15_scheme
@@ -52,19 +52,19 @@ def ibm_15(delta):
 
     linspaces, sols = wrapped_hypoelliptic_15(keys)
 
-    return jnp.cov(sols[:, 1], rowvar=False)
+    return jnp.cov(sols[:, -1], rowvar=False)
 
 
-deltas = jnp.logspace(-3, 0, 20)
+deltas = jnp.logspace(-2, -1, 4)
 import numpy as np
 Ndeltas = np.ceil(1 / deltas)
 ibms = jnp.empty(shape=(2, 2))
-ibms = jnp.stack([ibm(delta, int(N))[0, 0]/delta**3 for delta, N in zip(deltas, Ndeltas)])
+ibms = jnp.stack([ibm(delta, int(N))[0, 0] for delta, N in zip(deltas, Ndeltas)])
 
 #ibms = ibm(deltas)
 ibms_15 = ibm_15(deltas)
 print(ibms)
-plt.plot(1 / deltas, ibms)
-plt.plot(1 / deltas, ibms_15[::-1, 0, 0] / deltas[::-1] ** 3, label="Ditlevsen & Samson")
+plt.semilogy(1 / deltas, ibms)
+#plt.semilogy(1 / deltas, ibms_15[::-1, 0, 0], label="Ditlevsen & Samson")
 plt.legend()
 plt.show()

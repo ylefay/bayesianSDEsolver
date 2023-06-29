@@ -51,7 +51,7 @@ def test_harmonic_oscillator_euler():
 
     x0 = jnp.ones((2,))
     N = 1000
-    delta = 2 / N
+    delta = 1 / N
 
     M = 100
 
@@ -71,4 +71,4 @@ def test_harmonic_oscillator_euler():
                                      [1 / 2 * t ** 2 - 1 / 2 * t ** 3 * gamma,
                                       t - gamma * t ** 2 + 1 / 3 * t ** 3 * (2 * gamma ** 2 - D)]])
 
-    npt.assert_array_almost_equal(jnp.cov(sols[:, 1], rowvar=False), theoretical_variance_up_to_order3(1), decimal=3)
+    npt.assert_array_almost_equal(jnp.cov(sols[:, 1], rowvar=False), theoretical_variance_up_to_order3(1), decimal=10)

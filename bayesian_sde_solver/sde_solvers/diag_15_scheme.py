@@ -50,24 +50,3 @@ def solver_commutativenoise(key, init, drift, sigma, h, N):
     # assume commutative noise of the second kind
     # support time dependent drift and diffusion
     # see Kloeden, Patten 1994 4.15
-    n = drift(init, 0.).shape[0]
-    m = sigma(init, 0.).shape[1]
-
-    # f is a scalar function
-    """"def L0(f):
-        return lambda x, t: \
-            jax.jacfwd(f, argnums=1)(x, t) + f(x, t) @ jax.jacfwd(f, argnums=0)(x, t) + \
-            0.5 * jnp.einsum('kj,lj,kl->', sigma(x, t), sigma(x, t), jax.hessian(f, argnums=0)(x, t))
-    def L(f):
-        return lambda x, t: \
-                    jnp.einsum('kj->j', jax.jacfwd(f, argnums=0)(x, t))
-
-    ZW = jax.random.multivariate_normal(bm_key, jnp.zeros(2 * m), jnp.block(
-        [[jnp.eye(m) * h ** 3 / 3, jnp.eye(m) * h ** 2 / 2],
-         [jnp.eye(m) * h ** 2 / 2, jnp.eye(m) * h]]))
-    Z = ZW[:m]
-    W = ZW[m:]
-    out = x + drift(x, t) * h + sigma(x, t) @ W + \
-        0.5 * L0()
-
-    pass"""
