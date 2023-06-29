@@ -6,7 +6,7 @@ def drift_correction(diffusion, t, x):
     # see Kloeden, Pattern, 1999, chapter 4.9.
     diff_val = diffusion(x, t)
     jac_val = jax.jacfwd(lambda z: diffusion(z, t))(x)
-    return jnp.einsum('jk,ikj->i', diff_val, jac_val)
+    return jnp.einsum("jk,ikj->i", diff_val, jac_val)
 
 
 def to_stratonovich(drift, diffusion):

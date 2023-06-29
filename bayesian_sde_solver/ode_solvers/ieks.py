@@ -13,11 +13,19 @@ def solver(key, init, vector_field, h, N):
         return vector_field(x, t)
 
     ts0 = ivpsolvers.solver_calibrationfree(
-        *smoothers.smoother_fixedpoint(*recipes.ts1_dense(ode_order=1, num_derivatives=1, ode_shape=(dim,))))
+        *smoothers.smoother_fixedpoint(
+            *recipes.ts1_dense(ode_order=1, num_derivatives=1, ode_shape=(dim,))
+        )
+    )
     ts = jnp.linspace(0, N * h, N + 1)
-    solution = ivpsolve.solve_fixed_grid(vector_field=vf, initial_values=(init,), solver=ts0, grid=ts)
+    solution = ivpsolve.solve_fixed_grid(
+        vector_field=vf, initial_values=(init,), solver=ts0, grid=ts
+    )
     if key is None:
-        y, samples = solution.marginals.marginal_nth_derivative(0).mean[-1], solution.marginals
+        y, samples = (
+            solution.marginals.marginal_nth_derivative(0).mean[-1],
+            solution.marginals,
+        )
     else:
         m = solution.marginals.marginal_nth_derivative(0).mean[-1]
         cholesky = solution.marginals.marginal_nth_derivative(0).cov_sqrtm_lower[-1]

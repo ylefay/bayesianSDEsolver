@@ -11,8 +11,8 @@ from bayesian_sde_solver.sde_solver import sde_solver
 JAX_KEY = jax.random.PRNGKey(1337)
 
 
-@partial(jnp.vectorize, signature='()->(s,s)', excluded=(1, ))
-@partial(jax.jit, static_argnums=(1, ))
+@partial(jnp.vectorize, signature="()->(s,s)", excluded=(1,))
+@partial(jax.jit, static_argnums=(1,))
 def ibm(delta, N=20):
     keys = jax.random.split(JAX_KEY, 1_000_00)
 
@@ -26,8 +26,16 @@ def ibm(delta, N=20):
 
     @jax.vmap
     def wrapped_filter_parabola(key_op):
-        return sde_solver(key=key_op, drift=drift, sigma=sigma, x0=x0, bm=parabola_approx, delta=delta, N=N,
-                          ode_int=wrapped)
+        return sde_solver(
+            key=key_op,
+            drift=drift,
+            sigma=sigma,
+            x0=x0,
+            bm=parabola_approx,
+            delta=delta,
+            N=N,
+            ode_int=wrapped,
+        )
 
     _, sols = wrapped_filter_parabola(keys)
     return jnp.cov(sols[:, -1], rowvar=False)
@@ -36,7 +44,7 @@ def ibm(delta, N=20):
 from bayesian_sde_solver.sde_solvers import hypoelliptic_diffusion_15_scheme
 
 
-@partial(jnp.vectorize, signature='()->(d,d)')
+@partial(jnp.vectorize, signature="()->(d,d)")
 def ibm_15(delta):
     keys = jax.random.split(JAX_KEY, 1_000_00)
 
@@ -48,7 +56,9 @@ def ibm_15(delta):
 
     @jax.vmap
     def wrapped_hypoelliptic_15(key_op):
-        return hypoelliptic_diffusion_15_scheme(key=key_op, init=x0, drift=drift, sigma=sigma, h=delta, N=N)
+        return hypoelliptic_diffusion_15_scheme(
+            key=key_op, init=x0, drift=drift, sigma=sigma, h=delta, N=N
+        )
 
     linspaces, sols = wrapped_hypoelliptic_15(keys)
 
@@ -57,14 +67,15 @@ def ibm_15(delta):
 
 deltas = jnp.logspace(-2, -1, 4)
 import numpy as np
+
 Ndeltas = np.ceil(1 / deltas)
 ibms = jnp.empty(shape=(2, 2))
 ibms = jnp.stack([ibm(delta, int(N))[0, 0] for delta, N in zip(deltas, Ndeltas)])
 
-#ibms = ibm(deltas)
+# ibms = ibm(deltas)
 ibms_15 = ibm_15(deltas)
 print(ibms)
 plt.semilogy(1 / deltas, ibms)
-#plt.semilogy(1 / deltas, ibms_15[::-1, 0, 0], label="Ditlevsen & Samson")
+# plt.semilogy(1 / deltas, ibms_15[::-1, 0, 0], label="Ditlevsen & Samson")
 plt.legend()
 plt.show()

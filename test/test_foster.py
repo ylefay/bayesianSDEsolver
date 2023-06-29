@@ -24,7 +24,7 @@ def test_moments():
 
     increments = get_increments(keys)
     npt.assert_almost_equal(increments.mean(), 0, decimal=2)
-    npt.assert_almost_equal(increments.std(), h ** 0.5, decimal=2)
+    npt.assert_almost_equal(increments.std(), h**0.5, decimal=2)
 
 
 def test_path_integral():
@@ -47,8 +47,12 @@ def test_path_integral():
         return t * jax.jacfwd(func)(t)
 
     ys = integrand_mean(linspace, *coeffs)
-    trapz = jax.vmap(jax.vmap(jnp.trapz, in_axes=[1, None]), in_axes=[2, None])(ys, linspace)
+    trapz = jax.vmap(jax.vmap(jnp.trapz, in_axes=[1, None]), in_axes=[2, None])(
+        ys, linspace
+    )
     # trapz = jnp.trapz(ys, linspace, axis=0) #works
 
     npt.assert_array_almost_equal(trapz.mean(axis=1), jnp.array([0.0, 0.0]), decimal=2)
-    npt.assert_array_almost_equal(jnp.cov(trapz), h ** 3 / 3 * jnp.identity(2), decimal=2)
+    npt.assert_array_almost_equal(
+        jnp.cov(trapz), h**3 / 3 * jnp.identity(2), decimal=2
+    )

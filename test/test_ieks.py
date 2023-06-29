@@ -31,10 +31,20 @@ def test_gbm_moment():
 
     @jax.vmap
     def wrapped_ieks_parabola(key_op):
-        return sde_solver(key=key_op, drift=drift, sigma=sigma, x0=x0, bm=parabola_approx, delta=delta, N=N,
-                          ode_int=wrapped_ieks)
+        return sde_solver(
+            key=key_op,
+            drift=drift,
+            sigma=sigma,
+            x0=x0,
+            bm=parabola_approx,
+            delta=delta,
+            N=N,
+            ode_int=wrapped_ieks,
+        )
 
     linspaces, sols = wrapped_ieks_parabola(keys)
 
-    npt.assert_almost_equal(sols[:, -1].std(), x0 * jnp.exp(a) * (jnp.exp(b) - 1) ** 0.5, decimal=1)
+    npt.assert_almost_equal(
+        sols[:, -1].std(), x0 * jnp.exp(a) * (jnp.exp(b) - 1) ** 0.5, decimal=1
+    )
     npt.assert_almost_equal(sols[:, -1].mean(), x0 * jnp.exp(a), decimal=1)

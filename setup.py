@@ -21,8 +21,7 @@ setuptools.setup(
         "chex>=0.1.5",
         "jax>=0.3.25",
         "jaxlib>=0.3.25",
-        "matplotlib>=3.6.3"
-        "pytest",
+        "matplotlib>=3.6.3" "pytest",
         "numpy>=1.24.3",
         "probdiffeq>=0.1.4",
         "parsmooth",

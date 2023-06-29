@@ -11,14 +11,22 @@ def solver(key, init, vector_field, h, N):
     def vf(x, t=0.0, p=None):
         return vector_field(x, t)
 
-    ts0 = ivpsolvers.solver_calibrationfree(*filters.filter(
-        *recipes.ts0_dense(ode_order=1, num_derivatives=1, ode_shape=(dim,))))  # ts0_iso O(d), ts0_dense O(d^3)"""
+    ts0 = ivpsolvers.solver_calibrationfree(
+        *filters.filter(
+            *recipes.ts0_dense(ode_order=1, num_derivatives=1, ode_shape=(dim,))
+        )
+    )  # ts0_iso O(d), ts0_dense O(d^3)"""
     """ts0 = ivpsolvers.solver_calibrationfree(*filters.filter(
         *recipes.ts0_iso(ode_order=1, num_derivatives=1)))"""
     ts = jnp.linspace(0, N * h, N + 1)
-    solution = ivpsolve.solve_fixed_grid(vector_field=vf, initial_values=(init,), solver=ts0, grid=ts)
+    solution = ivpsolve.solve_fixed_grid(
+        vector_field=vf, initial_values=(init,), solver=ts0, grid=ts
+    )
     if key is None:
-        y, samples = solution.marginals.marginal_nth_derivative(0).mean[-1], solution.marginals
+        y, samples = (
+            solution.marginals.marginal_nth_derivative(0).mean[-1],
+            solution.marginals,
+        )
     else:
         m = solution.marginals.marginal_nth_derivative(0).mean[-1]
         cholesky = solution.marginals.marginal_nth_derivative(0).cov_sqrtm_lower[-1]

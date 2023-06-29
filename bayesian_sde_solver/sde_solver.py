@@ -3,14 +3,14 @@ import jax.numpy as jnp
 
 
 def sde_solver(
-        key,
-        drift,
-        sigma,
-        x0,
-        bm,
-        delta,
-        N,
-        ode_int,
+    key,
+    drift,
+    sigma,
+    x0,
+    bm,
+    delta,
+    N,
+    ode_int,
 ):
     init = x0
     get_coeffs, eval_fn = bm()

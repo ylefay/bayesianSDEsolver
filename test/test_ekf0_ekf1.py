@@ -30,11 +30,21 @@ def test_gbm_ekf0():
 
     @jax.vmap
     def wrapped_filter_parabola(key_op):
-        return sde_solver(key=key_op, drift=drift, sigma=sigma, x0=x0, bm=parabola_approx, delta=delta, N=N,
-                          ode_int=wrapped_ekf0)
+        return sde_solver(
+            key=key_op,
+            drift=drift,
+            sigma=sigma,
+            x0=x0,
+            bm=parabola_approx,
+            delta=delta,
+            N=N,
+            ode_int=wrapped_ekf0,
+        )
 
     linspaces, sols = wrapped_filter_parabola(keys)
-    npt.assert_almost_equal(sols[:, -1].std(), x0 * jnp.exp(a) * (jnp.exp(b) - 1) ** 0.5, decimal=1)
+    npt.assert_almost_equal(
+        sols[:, -1].std(), x0 * jnp.exp(a) * (jnp.exp(b) - 1) ** 0.5, decimal=1
+    )
     npt.assert_almost_equal(sols[:, -1].mean(), x0 * jnp.exp(a), decimal=1)
 
 
@@ -59,11 +69,21 @@ def test_gbm_ekf1():
 
     @jax.vmap
     def wrapped_filter_parabola(key_op):
-        return sde_solver(key=key_op, drift=drift, sigma=sigma, x0=x0, bm=parabola_approx, delta=delta, N=N,
-                          ode_int=wrapped_ekf1)
+        return sde_solver(
+            key=key_op,
+            drift=drift,
+            sigma=sigma,
+            x0=x0,
+            bm=parabola_approx,
+            delta=delta,
+            N=N,
+            ode_int=wrapped_ekf1,
+        )
 
     linspaces, sols = wrapped_filter_parabola(keys)
-    npt.assert_almost_equal(sols[:, -1].std(), x0 * jnp.exp(a) * (jnp.exp(b) - 1) ** 0.5, decimal=1)
+    npt.assert_almost_equal(
+        sols[:, -1].std(), x0 * jnp.exp(a) * (jnp.exp(b) - 1) ** 0.5, decimal=1
+    )
     npt.assert_almost_equal(sols[:, -1].mean(), x0 * jnp.exp(a), decimal=1)
 
 
@@ -88,15 +108,30 @@ def test_harmonic_oscillator_ekf0():
 
     @jax.vmap
     def wrapped_filter_parabola(key_op):
-        return sde_solver(key=key_op, drift=drift, sigma=sigma, x0=x0, bm=parabola_approx, delta=delta, N=N,
-                          ode_int=wrapped_ekf0)
+        return sde_solver(
+            key=key_op,
+            drift=drift,
+            sigma=sigma,
+            x0=x0,
+            bm=parabola_approx,
+            delta=delta,
+            N=N,
+            ode_int=wrapped_ekf0,
+        )
 
     linspaces, sols = wrapped_filter_parabola(keys)
 
     def theoretical_variance_up_to_order3(k):
         t = k * delta
-        return sig ** 2 * jnp.array([[1 / 3 * t ** 3, 1 / 2 * t ** 2 - 1 / 2 * t ** 3 * gamma],
-                                     [1 / 2 * t ** 2 - 1 / 2 * t ** 3 * gamma,
-                                      t - gamma * t ** 2 + 1 / 3 * t ** 3 * (2 * gamma ** 2 - D)]])
+        return sig**2 * jnp.array(
+            [
+                [1 / 3 * t**3, 1 / 2 * t**2 - 1 / 2 * t**3 * gamma],
+                [1 / 2 * t**2 - 1 / 2 * t**3 * gamma, t - gamma * t**2 + 1 / 3 * t**3 * (2 * gamma**2 - D)],
+            ]
+        )
 
-    npt.assert_array_almost_equal(jnp.cov(sols[:, 1], rowvar=False), theoretical_variance_up_to_order3(1), decimal=2)
+    npt.assert_array_almost_equal(
+        jnp.cov(sols[:, 1], rowvar=False),
+        theoretical_variance_up_to_order3(1),
+        decimal=2,
+    )
