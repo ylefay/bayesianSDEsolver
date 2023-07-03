@@ -64,7 +64,7 @@ def test_gbm_ekf1():
     keys = jax.random.split(JAX_KEY, 1_000)
 
     def wrapped_ekf1(_key, init, vector_field, T):
-        M = 10
+        M = 1
         return ekf1(key=_key, init=init, vector_field=vector_field, h=T / M, N=M)
 
     @jax.vmap

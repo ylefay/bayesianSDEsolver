@@ -8,7 +8,7 @@ from probdiffeq.strategies import filters
 def solver(key, init, vector_field, h, N):
     dim = init.shape[0]
 
-    def vf(x, t=0.0, p=None):
+    def vf(x, t=0.0, _=None):
         return vector_field(x, t)
 
     ts0 = ivpsolvers.solver_calibrationfree(
