@@ -12,7 +12,7 @@ def test_gbm_ekf1():
     a = 1
     b = 1
     drift = lambda x, t: a * x
-    sigma = lambda x, t: b * jnp.diag(x)
+    sigma = lambda x, t: b * jnp.reshape(x, (1, 1))
 
     drift, sigma = to_stratonovich(drift, sigma)
 
@@ -26,7 +26,7 @@ def test_gbm_ekf1():
 
     def wrapped_ekf1(_key, init, vector_field, T):
         M = 10
-        return ekf1(key=_key, init=init, vector_field=vector_field, h=T / M, N=M)
+        return ekf1(key=None, init=init, vector_field=vector_field, h=T / M, N=M)
 
     @jax.vmap
     def wrapped_filter_parabola(key_op):
@@ -43,6 +43,6 @@ def test_gbm_ekf1():
 
     linspaces, sols = wrapped_filter_parabola(keys)
     npt.assert_almost_equal(
-        sols[:, -1].std(), x0 * jnp.exp(a) * (jnp.exp(b) - 1) ** 0.5, decimal=1
+        sols[:, 1].std(), x0 * jnp.exp(a * delta) * (jnp.exp(b ** 2 * delta) - 1) ** 0.5, decimal=1
     )
     npt.assert_almost_equal(sols[:, -1].mean(), x0 * jnp.exp(a), decimal=1)

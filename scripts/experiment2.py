@@ -1,14 +1,14 @@
 from functools import partial
 
-import numpy as np
-
 import jax
 import jax.numpy as jnp
 import matplotlib.pyplot as plt
+import numpy as np
+
 from bayesian_sde_solver.foster_polynomial import get_approx as parabola_approx
-from bayesian_sde_solver.ode_solvers import ekf0, ekf1, ieks, euler
-from bayesian_sde_solver.sde_solver import sde_solver
 from bayesian_sde_solver.ito_stratonovich import to_stratonovich
+from bayesian_sde_solver.ode_solvers import ekf0
+from bayesian_sde_solver.sde_solver import sde_solver
 
 JAX_KEY = jax.random.PRNGKey(1337)
 
