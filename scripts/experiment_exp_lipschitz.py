@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 from bayesian_sde_solver.foster_polynomial import get_approx as parabola_approx
 
-# This experiment is to test the bound on
+# This experiment is to tests the bound on
 # the expectancy of the exp of the integrated lipschitz constant
 
 seed = jax.random.PRNGKey(1337)

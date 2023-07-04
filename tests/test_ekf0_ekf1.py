@@ -137,7 +137,7 @@ def test_harmonic_oscillator_ekf0():
 
 
 def test_harmonic_oscillator_ekf1():
-    #TODO: fix this test
+    #TODO: fix this tests
     JAX_KEY = jax.random.PRNGKey(1337)
     keys = jax.random.split(JAX_KEY, 1_000)
 

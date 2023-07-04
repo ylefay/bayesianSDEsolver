@@ -21,7 +21,7 @@ def solver(key, init, vector_field, h, N):
                    [P_10,  P_11]]
         )
     _var = var.copy()
-    #interlace
+    #interlace the variance matrix
     _var.at[::2, ::2].set(var.at[:dim, :dim].get())
     _var.at[1::2, 1::2].set(var.at[dim:, dim:].get())
     _var.at[1::2, ::2].set(var.at[dim:, :dim].get())

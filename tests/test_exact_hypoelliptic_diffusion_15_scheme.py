@@ -22,7 +22,7 @@ def test_synaptic_conductance():
     V0 = -60.0
     G_E0 = 10.0
     G_I0 = 10.0
-    C = G_E0 + G_I0  # total conductance, not important for our test
+    C = G_E0 + G_I0  # total conductance, not important for our tests
     G_L = 50.0
 
     x0 = jnp.array([V0, G_E0, G_I0])

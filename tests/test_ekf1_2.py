@@ -21,14 +21,14 @@ def test_gbm_ekf1():
     P0 = jnp.zeros((1, 1))
     x0 = MVNStandard(m0, P0)
 
-    N = 1
+    N = 200
     delta = 1 / N
 
     JAX_KEY = jax.random.PRNGKey(1337)
     keys = jax.random.split(JAX_KEY, 1_000)
 
     def wrapped_ekf1(_key, init, vector_field, T):
-        M = 200
+        M = 20000
         return ekf1_2(key=None, init=init, vector_field=vector_field, h=T / M, N=M)
 
     @jax.vmap

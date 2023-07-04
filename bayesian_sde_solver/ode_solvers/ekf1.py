@@ -56,12 +56,13 @@ def _solver(init, vector_field, h, N):
     else:
         return MVNStandard(filtered.mean[-1], filtered.cov[-1])
 
+
 def solver(key, init, vector_field, h, N):
     """
     Wrapper for EKF1 with new prior at each step.
     """
     dim = init.shape[0]
-    # No initial variance
+    # Zero initial variance
     init = MVNSqrt(
         interlace(init, vector_field(init, 0.0)),
         jnp.zeros((2 * dim, 2 * dim))
