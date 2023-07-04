@@ -5,8 +5,7 @@ import jax.numpy as jnp
 def solver(key, init, drift, sigma, h, N):
     # simulate hypoelliptic diffusion with 1.5 scheme
     # https://arxiv.org/abs/1707.04235
-    # does not support non diagonal diffusion matrix or maybe it does..
-    # (maybe not taking into account non diagonal diffusion in leading order var.. ?)
+    # does not support non diagonal diffusion matrix
     # up to the leading order (eq . 32)
 
     dim = drift(init).shape[0]

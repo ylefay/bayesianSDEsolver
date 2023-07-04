@@ -134,3 +134,55 @@ def test_harmonic_oscillator_ekf0():
         theoretical_variance_up_to_order3(1),
         decimal=2,
     )
+
+
+def test_harmonic_oscillator_ekf1():
+    #TODO: fix this test
+    JAX_KEY = jax.random.PRNGKey(1337)
+    keys = jax.random.split(JAX_KEY, 1_000)
+
+    gamma = 1.0
+    D = 1.0
+    sig = 2.0
+
+    drift = lambda x, t: jnp.dot(jnp.array([[0.0, 1.0], [-D, -gamma]]), x)
+    sigma = lambda x, t: jnp.array([[0.0], [sig]])
+
+    x0 = jnp.ones((2,))
+    N = 1000
+    delta = 2 / N
+
+    def wrapped_ekf1(_key, init, vector_field, T):
+        M = 10
+        return ekf1(key=None, init=init, vector_field=vector_field, h=T / M, N=M)
+
+    @jax.vmap
+    def wrapped_filter_parabola(key_op):
+        return sde_solver(
+            key=key_op,
+            drift=drift,
+            sigma=sigma,
+            x0=x0,
+            bm=parabola_approx,
+            delta=delta,
+            N=N,
+            ode_int=wrapped_ekf1,
+        )
+
+    with jax.disable_jit():
+        linspaces, sols = wrapped_filter_parabola(keys)
+
+    def theoretical_variance_up_to_order3(k):
+        t = k * delta
+        return sig**2 * jnp.array(
+            [
+                [1 / 3 * t**3, 1 / 2 * t**2 - 1 / 2 * t**3 * gamma],
+                [1 / 2 * t**2 - 1 / 2 * t**3 * gamma, t - gamma * t**2 + 1 / 3 * t**3 * (2 * gamma**2 - D)],
+            ]
+        )
+
+    npt.assert_array_almost_equal(
+        jnp.cov(sols[:, 1], rowvar=False),
+        theoretical_variance_up_to_order3(1),
+        decimal=2,
+    )

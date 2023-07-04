@@ -2,7 +2,7 @@ import jax
 import jax.numpy as jnp
 from typing import Callable, Tuple
 from numpy.typing import ArrayLike
-
+from bayesian_sde_solver._utils import insert
 
 def sde_solver(
     key,
@@ -31,5 +31,5 @@ def sde_solver(
 
     inps = keys, ts[:-1]
     _, samples = jax.lax.scan(body, init, inps)
-    samples = jnp.insert(samples, 0, init, axis=0)
+    samples = insert(samples, 0, init, axis=0)
     return ts, samples
