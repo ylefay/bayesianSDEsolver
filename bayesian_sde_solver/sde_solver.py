@@ -1,17 +1,19 @@
 import jax
 import jax.numpy as jnp
+from typing import Callable, Tuple
+from numpy.typing import ArrayLike
 
 
 def sde_solver(
     key,
-    drift,
-    sigma,
-    x0,
-    bm,
-    delta,
-    N,
-    ode_int,
-):
+    drift: Callable,
+    sigma: Callable,
+    x0: ArrayLike,
+    bm: Callable,
+    delta: float,
+    N: int,
+    ode_int: Callable,
+) -> Tuple[ArrayLike, ArrayLike]:
     init = x0
     get_coeffs, eval_fn = bm()
 

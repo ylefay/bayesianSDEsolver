@@ -1,14 +1,15 @@
 from math import factorial
+from typing import Callable, Tuple
 
 import jax.numpy as jnp
 import jax.scipy.linalg as linalg
 
 
-def transition_function(theta, sigma, q, dt, dim):
+def transition_function(theta: float, sigma: float, q: int, dt: float, dim: int) -> Tuple[Callable, jnp.ndarray, jnp.ndarray]:
     F = jnp.block(
         [[jnp.zeros(q).reshape((q, 1)), jnp.diag(jnp.ones(q))],
-         [jnp.append(jnp.zeros(q), jnp.array([-theta])).reshape((1, q + 1))],
-        ])
+         [jnp.append(jnp.zeros(q), jnp.array([-theta])).reshape((1, q + 1))]]
+    )
     #F = jnp.kron(jnp.eye(dim), F)
 
     A = linalg.expm(F * dt)
@@ -24,4 +25,3 @@ def transition_function(theta, sigma, q, dt, dim):
         return jnp.dot(A, x)
 
     return transition, m, Q
-

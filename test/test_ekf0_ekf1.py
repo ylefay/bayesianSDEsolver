@@ -64,7 +64,7 @@ def test_gbm_ekf1():
     keys = jax.random.split(JAX_KEY, 1_000)
 
     def wrapped_ekf1(_key, init, vector_field, T):
-        M = 1
+        M = 30
         return ekf1(key=_key, init=init, vector_field=vector_field, h=T / M, N=M)
 
     @jax.vmap
@@ -79,7 +79,6 @@ def test_gbm_ekf1():
             N=N,
             ode_int=wrapped_ekf1,
         )
-
     linspaces, sols = wrapped_filter_parabola(keys)
     npt.assert_almost_equal(
         sols[:, -1].std(), x0 * jnp.exp(a) * (jnp.exp(b) - 1) ** 0.5, decimal=1
@@ -99,12 +98,12 @@ def test_harmonic_oscillator_ekf0():
     sigma = lambda x, t: jnp.array([[0.0], [sig]])
 
     x0 = jnp.ones((2,))
-    N = 100
+    N = 1000
     delta = 2 / N
 
     def wrapped_ekf0(_key, init, vector_field, T):
-        N = 10
-        return ekf0(key=None, init=init, vector_field=vector_field, h=T / N, N=N)
+        M = 10
+        return ekf0(key=None, init=init, vector_field=vector_field, h=T / M, N=M)
 
     @jax.vmap
     def wrapped_filter_parabola(key_op):

@@ -53,38 +53,19 @@ def test_synaptic_conductance():
 
     def theoretical_mean_up_to_order_2(k):
         t = k * h
-        return (
-            x0
-            + t * drift(x0)
-            + t**2
-            / 2
-            * jnp.array(
-                [
-                    -1.0
-                    / C
-                    * (
-                        drift(x0)[0] * (G_L + x0[1] + x0[2])
-                        + drift(x0)[1] * (x0[1] - V_E)
-                        + drift(x0)[2] * (x0[0] - V_I)
-                    ),
+        return (x0 + t * drift(x0) + t**2 / 2 * jnp.array(
+                [-1.0 / C * (drift(x0)[0] * (G_L + x0[1] + x0[2]) + drift(x0)[1] * (x0[1] - V_E) + drift(x0)[2] * (x0[0] - V_I)),
                     -1.0 / tau_E * drift(x0)[1],
-                    -1.0 / tau_I * drift(x0)[2],
-                ]
-            )
-        )
+                    -1.0 / tau_I * drift(x0)[2]])
+                )
 
     linspaces, sols = wrapped_hypoelliptic_15(keys)
 
     def theoretical_variance_up_to_order_3_first_coordinate(k):
         t = k * h
-        return (
-            t**3
-            / (3 * C**2)
-            * (
+        return (t**3 / (3 * C**2) * (
                 (x0[0] - V_E) ** 2 * sig_E**2 * x0[2]
-                + (x0[0] - V_I) ** 2 * sig_I**2 * x0[2]
-            )
-        )
+                + (x0[0] - V_I) ** 2 * sig_I**2 * x0[2]))
 
     npt.assert_array_almost_equal(
         jnp.mean(sols[:, 1], axis=0), theoretical_mean_up_to_order_2(1), decimal=2

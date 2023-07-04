@@ -8,8 +8,13 @@ from bayesian_sde_solver.ode_solvers.probnum import IOUP_transition_function
 
 
 def solver(key, init, vector_field, h, N):
+    ts = jnp.linspace(0, N * h, N + 1)
     dim = init.shape[0]
     observations = jnp.zeros(N * dim).reshape((N, dim))
+
+    def _observation_function(x, t):
+        # IVP observation function
+        return x[1, None] - vector_field(jax.lax.stop_gradient(x[0, None]), t) #does not work
 
     (
         _transition_function,
@@ -19,10 +24,6 @@ def solver(key, init, vector_field, h, N):
     transition_model = FunctionalModel(
         _transition_function, MVNStandard(_transition_mean, _transition_covariance)
     )  #theta = 0, IBM
-
-    def _observation_function(x, t):
-        # IVP observation function
-        return x[1, None] - vector_field(x[0, None], t)
 
     # No initial variance
     init = MVNStandard(
@@ -35,15 +36,8 @@ def solver(key, init, vector_field, h, N):
         _observation_function, MVNStandard(jnp.zeros((dim,)), jnp.zeros((dim, dim)))
     )
 
-    ts = jnp.linspace(0, N * h, N + 1)
-
     filtered = filtering(observations, init, transition_model, observation_model, extended, None,
                          params_transition=None, params_observation=(ts, ))
     last_value = jnp.vstack(filtered.mean[-1, ::2]).reshape((dim, ))
-
-    if key is not None:
-        last_sample = filtered.mean[-1] + jnp.linalg.cholesky(filtered.cov[-1]) @ \
-            jax.random.multivariate_normal(key, jnp.zeros((2 * dim, )), jnp.eye(2 * dim))
-        return jnp.vstack(last_sample[::2]).reshape((dim, ))  #nan
 
     return last_value

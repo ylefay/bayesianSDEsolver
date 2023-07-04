@@ -1,8 +1,10 @@
 import jax
 import jax.numpy as jnp
+from typing import Callable, Tuple
+from numpy.typing import ArrayLike
 
 
-def drift_correction(diffusion, t, x):
+def drift_correction(diffusion: Callable, t: float, x: ArrayLike) -> ArrayLike:
     # see Kloeden, Pattern, 1999, chapter 4.9.
     diff_val = diffusion(x, t)
     jac_val = jax.jacfwd(lambda z: diffusion(z, t))(x)
