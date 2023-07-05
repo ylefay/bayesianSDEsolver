@@ -21,15 +21,15 @@ def test_gbm_ekf1():
     P0 = jnp.zeros((1, 1))
     x0 = MVNStandard(m0, P0)
 
-    N = 200
+    N = 10
     delta = 1 / N
 
     JAX_KEY = jax.random.PRNGKey(1337)
-    keys = jax.random.split(JAX_KEY, 1_000)
+    keys = jax.random.split(JAX_KEY, 1_000_00)
 
     def wrapped_ekf1(_key, init, vector_field, T):
-        M = 20000
-        return ekf1_2(key=None, init=init, vector_field=vector_field, h=T / M, N=M)
+        M = 100
+        return ekf1_2(None, init=init, vector_field=vector_field, h=T / M, N=M)
 
     @jax.vmap
     def wrapped_filter_parabola(key_op):

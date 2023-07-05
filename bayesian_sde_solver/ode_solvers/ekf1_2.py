@@ -5,7 +5,7 @@ from parsmooth import MVNStandard
 from bayesian_sde_solver.ode_solvers.probnum import interlace
 from bayesian_sde_solver.ode_solvers.ekf1 import _solver
 
-def solver(key, init, vector_field, h, N):
+def solver(_, init, vector_field, h, N):
     """
     Wrapper for EKF1 with the prior being initialized at the previous posterior.
     Hence, this solver leads to one prior for the whole trajectory.

@@ -20,8 +20,7 @@ def _solver(init, vector_field, h, N):
 
     def _observation_function(x, t):
         # IVP observation function
-        # TODO: does not work in the multivariate case.
-        return x[1, None] - vector_field(x[0, None], t)
+        return x[1::2] - vector_field(x[::2], t)
 
     (
         _transition_function,
