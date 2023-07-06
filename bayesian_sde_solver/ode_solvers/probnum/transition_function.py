@@ -1,7 +1,8 @@
+from typing import Callable, Tuple
+
 import jax
 import jax.numpy as jnp
 import jax.scipy.linalg as linalg
-from typing import Callable, Tuple
 
 
 def transition_function(F: jnp.array, u: jnp.array, L: jnp.array, h: float, n_linspace=10000) -> Tuple[Callable, jnp.ndarray, jnp.ndarray]:
@@ -11,9 +12,9 @@ def transition_function(F: jnp.array, u: jnp.array, L: jnp.array, h: float, n_li
     has the following strong solution:
         X(t+h) = exp(Fh)(X(t) + int_0^h exp(-Fs)L dW(s)),
     where
-        X(t+h) \mid X(t) ~ \calN(e^{Ah}X(t) + xi(h), Q(h)).
+        X(t+h) \mid X(t) ~ \calN(A(h)X(t) + xi(h), Q(h)).
     ----------------------------
-    Return x -> e^{Ah}x, xi(h), Q(h)
+    Return xi(h), Q(h), A(h).
     """
     linspace = jnp.linspace(0, h, n_linspace)
     A = linalg.expm(F * h)
@@ -34,4 +35,4 @@ def transition_function(F: jnp.array, u: jnp.array, L: jnp.array, h: float, n_li
     integrand_Q_values = integrand_Q(linspace)
     Q = jnp.trapz(integrand_Q_values, linspace, axis=0)
 
-    return transition, xi, Q, A
+    return xi, Q, A

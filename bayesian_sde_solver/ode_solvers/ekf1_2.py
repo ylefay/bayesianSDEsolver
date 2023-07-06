@@ -1,8 +1,7 @@
 import jax
 import jax.numpy as jnp
-from parsmooth import MVNStandard
 
-from bayesian_sde_solver.ode_solvers.ekf1 import _solver
+from bayesian_sde_solver.ode_solvers.ekf import _solver
 from bayesian_sde_solver.ode_solvers.probnum import interlace
 
 
@@ -27,12 +26,12 @@ def solver(_, init, vector_field, h, N):
     _var.at[1::2, 1::2].set(var.at[dim:, dim:].get())
     _var.at[1::2, ::2].set(var.at[dim:, :dim].get())
     _var.at[::2, 1::2].set(var.at[:dim, dim:].get())
-    init = MVNStandard(
+    init = (
         interlace(m_0, vector_field(m_0, 0.0)),
         _var
     )
 
-    filtered = _solver(init, vector_field, h, N)
+    filtered = _solver(init, vector_field, h, N, sqrt=False)
     m, P = filtered
     m_0, P_00 = m[::2], P[::2, ::2]
-    return MVNStandard(m_0, P_00)  # return the law of X^1
+    return (m_0, P_00)  # return the law of X^1

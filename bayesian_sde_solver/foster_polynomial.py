@@ -17,7 +17,6 @@ def get_approx(dim=1):
 
         return eps_0, eps_1
 
-    # @partial(jnp.vectorize, signature="(),(),(d),(d)->(d)")
     @partial(jnp.vectorize, signature="(),(),(),()->()")
     def eval_parabola(t, dt, a, b):
         u = t / dt

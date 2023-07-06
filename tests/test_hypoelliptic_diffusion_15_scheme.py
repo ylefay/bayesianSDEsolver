@@ -22,8 +22,11 @@ def test_harmonic_oscillator():
     M = jnp.array([[0.0, 1.0], [-D, -gamma]])
     C = jnp.array([[0.0], [sig]])
 
-    drift = lambda x: jnp.dot(M, x)
-    sigma = lambda x: C
+    def drift(x):
+        return jnp.dot(M, x)
+
+    def sigma(x):
+        return C
 
     x0 = jnp.ones((2,))
     N = 100
@@ -61,9 +64,11 @@ def test_fitzhugh_nagumo():
     alpha = 0.8
     s = 0.01
 
-    drift = lambda x: jnp.array([[1.0 / eps, -1.0 / eps], [gamma, -1]]) @ x + jnp.array(
+    def drift(x):
+        return jnp.array([[1.0 / eps, -1.0 / eps], [gamma, -1]]) @ x + jnp.array(
         [s / eps - x[0] ** 3 / eps, alpha])
-    sigma = lambda x: jnp.array([[0.0], [sig]])
+    def sigma(x):
+        return jnp.array([[0.0], [sig]])
 
     x1 = 1.0
     x2 = 0.4
@@ -76,8 +81,8 @@ def test_fitzhugh_nagumo():
         t = k * h
         return x0 + t * jnp.array(
             [1 / eps * (x1 - x1 ** 3 - x2 + s) + t / 2 * 1 / eps * (
-                        1 / eps * (1 - 3 * x1 ** 2) * (x1 - x1 ** 3 - x2 + s)
-                        - (gamma * x1 - x2 - alpha)),
+                    1 / eps * (1 - 3 * x1 ** 2) * (x1 - x1 ** 3 - x2 + s)
+                    - (gamma * x1 - x2 - alpha)),
              gamma * x1 - x2 + alpha + t / 2 * (gamma / eps * (x1 - x1 ** 3 - x2 + s) - (gamma * x1 - x2 + alpha))])
 
     def theoretical_variance_up_to_order3(k):
@@ -125,13 +130,15 @@ def test_synaptic_conductance():
     N = 100
     h = 1 / N
 
-    drift = lambda x: jnp.array(
+    def drift(x):
+        return jnp.array(
         [
             1.0 / C * (-G_L * (x[0] - V_L) - x[1] * (x[0] - V_E) - x[2] * (x[0] - V_I) + I_inj),
             -1.0 / tau_E * (x[1] - gbar_E),
             -1.0 / tau_I * (x[2] - gbar_I),
         ])
-    sigma = lambda x: jnp.array(
+    def sigma(x):
+        return jnp.array(
         [[0.0, 0.0], [sig_E * x[1] ** 0.5, 0.0], [0.0, sig_I * x[2] ** 0.5]]
     )
 
@@ -146,7 +153,7 @@ def test_synaptic_conductance():
         return (
                 x0 + t * drift(x0) + t ** 2 / 2 * jnp.array([
             -1.0 / C * (drift(x0)[0] * (G_L + x0[1] + x0[2]) + drift(x0)[1] * (x0[1] - V_E) + drift(x0)[2] * (
-                        x0[0] - V_I)),
+                    x0[0] - V_I)),
             -1.0 / tau_E * drift(x0)[1],
             -1.0 / tau_I * drift(x0)[2],
         ]
@@ -158,7 +165,7 @@ def test_synaptic_conductance():
     def theoretical_variance_up_to_order_3_first_coordinate(k):
         t = k * h
         return t ** 3 / (3 * C ** 2) * (
-                    (x0[0] - V_E) ** 2 * sig_E ** 2 * x0[2] + (x0[0] - V_I) ** 2 * sig_I ** 2 * x0[2])
+                (x0[0] - V_E) ** 2 * sig_E ** 2 * x0[2] + (x0[0] - V_I) ** 2 * sig_I ** 2 * x0[2])
 
     npt.assert_array_almost_equal(
         jnp.mean(sols[:, 1], axis=0), theoretical_mean_up_to_order_2(1), decimal=2

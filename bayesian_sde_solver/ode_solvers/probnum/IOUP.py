@@ -5,7 +5,7 @@ import jax.numpy as jnp
 import jax.scipy.linalg as linalg
 
 
-def transition_function(theta: float, sigma: float, q: int, dt: float, dim: int) -> Tuple[Callable, jnp.ndarray, jnp.ndarray]:
+def transition_function(theta: float, sigma: float, q: int, dt: float, dim: int) -> Tuple[Callable, jnp.ndarray, jnp.ndarray, jnp.ndarray]:
     """
     Closed formula for IOUP transition function.
     """
@@ -23,7 +23,4 @@ def transition_function(theta: float, sigma: float, q: int, dt: float, dim: int)
     Q = jnp.kron(jnp.eye(dim), Q)
     m = jnp.zeros(dim * (q + 1))
 
-    def transition(x):
-        return jnp.dot(A, x)
-
-    return transition, m, Q, A
+    return m, Q, A

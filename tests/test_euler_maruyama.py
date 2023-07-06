@@ -13,8 +13,12 @@ def test_gbm_moment():
 
     a = 1
     b = 1
-    drift = lambda x, t: a * x
-    sigma = lambda x, t: b * jnp.array([x])
+
+    def drift(x, t):
+        return a * x
+
+    def sigma(x, t):
+        return b * jnp.diag(x)
 
     x0 = jnp.ones((1,))
     N = 100

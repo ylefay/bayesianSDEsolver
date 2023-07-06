@@ -30,7 +30,8 @@ def test_synaptic_conductance():
     N = 100
     h = 1 / N
 
-    drift = lambda x: jnp.array(
+    def drift(x):
+        return jnp.array(
         [
             1.0
             / C
@@ -39,7 +40,8 @@ def test_synaptic_conductance():
             -1.0 / tau_I * (x[2] - gbar_I),
         ]
     )
-    sigma = lambda x: jnp.array(
+    def sigma(x):
+        return jnp.array(
         [
             [0.0, 0.0, 0.0],
             [sig_E * x[1] ** 0.5, 0.0, 0.0],

@@ -14,8 +14,12 @@ def test_gbm_euler():
 
     a = 1
     b = 1
-    drift = lambda x, t: a * x
-    sigma = lambda x, t: b * jnp.array([x])
+
+    def drift(x, t):
+        return a * x
+
+    def sigma(x, t):
+        return b * jnp.diag(x)
 
     drift, sigma = to_stratonovich(drift, sigma)
 

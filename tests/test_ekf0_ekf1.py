@@ -5,30 +5,33 @@ import numpy.testing as npt
 
 from bayesian_sde_solver.foster_polynomial import get_approx as parabola_approx
 from bayesian_sde_solver.ito_stratonovich import to_stratonovich
-from bayesian_sde_solver.ode_solvers import ekf1 as ekf0
-from bayesian_sde_solver.ode_solvers import ekf1_bis as ekf1
+from bayesian_sde_solver.ode_solvers import ekf1
+from bayesian_sde_solver.ode_solvers import ekf0
 from bayesian_sde_solver.sde_solver import sde_solver
 
 
-# tests both ekf0, ekf1 and foster polynomial
 def test_gbm_ekf0():
     a = 1.
-    b = 0.
-    drift = lambda x, t: jnp.ones((1,)) * 3
-    sigma = lambda x, t: b * jnp.diag(x)
+    b = 1.
+
+    def drift(x, t):
+        return a * x
+
+    def sigma(x, t):
+        return b * jnp.diag(x)
 
     drift, sigma = to_stratonovich(drift, sigma)
 
-    x0 = jnp.ones((1,)) * 5
-    N = 2
+    x0 = jnp.ones((1,))
+    N = 50
     delta = 1 / N
 
     JAX_KEY = jax.random.PRNGKey(1337)
-    keys = jax.random.split(JAX_KEY, 1)
+    keys = jax.random.split(JAX_KEY, 1_000_000)
 
     def wrapped_ekf0(_key, init, vector_field, T):
-        M = 10
-        return ekf0(_key, init=init, vector_field=vector_field, h=T / M, N=M)
+        M = 200
+        return ekf0(None, init=init, vector_field=vector_field, h=T / M, N=M)
 
     @jax.vmap
     def wrapped_filter_parabola(key_op):
@@ -43,34 +46,35 @@ def test_gbm_ekf0():
             ode_int=wrapped_ekf0,
         )
 
-    with jax.disable_jit():
-        linspaces, sols = wrapped_filter_parabola(keys)
-    print("sss")
-    print(sols[:, -1].mean())
+    linspaces, sols = wrapped_filter_parabola(keys)
     npt.assert_almost_equal(
-        sols[:, -1].std(), x0 * jnp.exp(a) * (jnp.exp(b) - 1) ** 0.5, decimal=1
+        sols[:, -1].std(), x0 * jnp.exp(a) * (jnp.exp(b) - 1) ** 0.5, decimal=2
     )
-    npt.assert_almost_equal(sols[:, -1].mean(), x0 * jnp.exp(a), decimal=1)
+    npt.assert_almost_equal(sols[:, -1].mean(), x0 * jnp.exp(a), decimal=2)
 
 
 def test_gbm_ekf1():
     a = 1
-    b = 0
-    drift = lambda x, t: a * x
-    sigma = lambda x, t: b * jnp.diag(x)
+    b = 1
+
+    def drift(x, t):
+        return a * x
+
+    def sigma(x, t):
+        return b * jnp.diag(x)
 
     drift, sigma = to_stratonovich(drift, sigma)
 
     x0 = jnp.ones((1,))
-    N = 1
+    N = 50
     delta = 1 / N
 
     JAX_KEY = jax.random.PRNGKey(1337)
-    keys = jax.random.split(JAX_KEY, 1)
+    keys = jax.random.split(JAX_KEY, 1_000_000)
 
     def wrapped_ekf1(_key, init, vector_field, T):
-        M = 2
-        return ekf1(key=_key, init=init, vector_field=vector_field, h=T / M, N=M)
+        M = 200
+        return ekf1(key=None, init=init, vector_field=vector_field, h=T / M, N=M)
 
     @jax.vmap
     def wrapped_filter_parabola(key_op):
@@ -85,17 +89,16 @@ def test_gbm_ekf1():
             ode_int=wrapped_ekf1,
         )
 
-    with jax.disable_jit():
-        linspaces, sols = wrapped_filter_parabola(keys)
+    linspaces, sols = wrapped_filter_parabola(keys)
     npt.assert_almost_equal(
-        sols[:, -1].std(), x0 * jnp.exp(a) * (jnp.exp(b) - 1) ** 0.5, decimal=1
+        sols[:, -1].std(), x0 * jnp.exp(a) * (jnp.exp(b) - 1) ** 0.5, decimal=2
     )
-    npt.assert_almost_equal(sols[:, -1].mean(), x0 * jnp.exp(a), decimal=1)
+    npt.assert_almost_equal(sols[:, -1].mean(), x0 * jnp.exp(a), decimal=2)
 
 
 def test_harmonic_oscillator_ekf0():
     JAX_KEY = jax.random.PRNGKey(1337)
-    keys = jax.random.split(JAX_KEY, 1_000)
+    keys = jax.random.split(JAX_KEY, 1_000_000)
 
     gamma = 1.0
     D = 1.0
@@ -103,15 +106,19 @@ def test_harmonic_oscillator_ekf0():
 
     M = jnp.array([[0.0, 1.0], [-D, -gamma]])
     C = jnp.array([[0.0], [sig]])
-    drift = lambda x, t: jnp.dot(M, x)
-    sigma = lambda x, t: C
+
+    def drift(x, t):
+        return jnp.dot(M, x)
+
+    def sigma(x, t):
+        return C
 
     x0 = jnp.ones((2,))
-    N = 100
+    N = 50
     delta = 1 / N
 
     def wrapped_ekf0(_key, init, vector_field, T):
-        M = 30
+        M = 200
         return ekf0(None, init=init, vector_field=vector_field, h=T / M, N=M)
 
     @jax.vmap
@@ -147,7 +154,7 @@ def test_harmonic_oscillator_ekf0():
 
 def test_harmonic_oscillator_ekf1():
     JAX_KEY = jax.random.PRNGKey(1337)
-    keys = jax.random.split(JAX_KEY, 1_000_00)
+    keys = jax.random.split(JAX_KEY, 1_000_000)
 
     gamma = 1.0
     D = 1.0
@@ -156,15 +163,18 @@ def test_harmonic_oscillator_ekf1():
     M = jnp.array([[0.0, 1.0], [-D, -gamma]])
     C = jnp.array([[0.0], [sig]])
 
-    drift = lambda x, t: jnp.dot(M, x)
-    sigma = lambda x, t: C
+    def drift(x, t):
+        return jnp.dot(M, x)
+
+    def sigma(x, t):
+        return C
 
     x0 = jnp.ones((2,))
-    N = 100
+    N = 50
     delta = 1 / N
 
     def wrapped_ekf1(_key, init, vector_field, T):
-        M = 100
+        M = 200
         return ekf1(key=None, init=init, vector_field=vector_field, h=T / M, N=M)
 
     @jax.vmap

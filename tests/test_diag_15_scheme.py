@@ -23,12 +23,15 @@ def test_synaptic_conductance():
     N = 100
     h = 1 / N
 
-    drift = lambda x: jnp.array(
-        [-1.0 / tau_E * (x[1] - gbar_E), -1.0 / tau_I * (x[2] - gbar_I)]
-    )
-    sigma = lambda x: jnp.array(
-        [[sig_E * x[1] ** 0.5, 0.0], [0.0, sig_I * x[2] ** 0.5]]
-    )
+    def drift(x):
+        return jnp.array(
+            [-1.0 / tau_E * (x[1] - gbar_E), -1.0 / tau_I * (x[2] - gbar_I)]
+        )
+
+    def sigma(x):
+        return jnp.array(
+            [[sig_E * x[1] ** 0.5, 0.0], [0.0, sig_I * x[2] ** 0.5]]
+        )
 
     @jax.vmap
     def wrapped_15(key_op):

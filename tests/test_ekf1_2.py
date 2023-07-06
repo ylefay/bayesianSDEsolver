@@ -2,7 +2,6 @@ import jax
 import jax.numpy as jnp
 import numpy.testing as npt
 
-from parsmooth import MVNStandard
 
 from bayesian_sde_solver.foster_polynomial import get_approx as parabola_approx
 from bayesian_sde_solver.ito_stratonovich import to_stratonovich
@@ -19,9 +18,9 @@ def test_gbm_ekf1():
 
     m0 = jnp.ones((1, ))
     P0 = jnp.zeros((1, 1))
-    x0 = MVNStandard(m0, P0)
+    x0 = (m0, P0)
 
-    N = 10
+    N = 30
     delta = 1 / N
 
     JAX_KEY = jax.random.PRNGKey(1337)
