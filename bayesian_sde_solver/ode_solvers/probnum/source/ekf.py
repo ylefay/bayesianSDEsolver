@@ -1,13 +1,14 @@
 import jax
 import jax.numpy as jnp
 import jax.scipy.linalg as jlinalg
-
+from functools import partial
 
 def tria(A):
     q, r = jlinalg.qr(A.T)
     return r.T
 
 
+@partial(jax.vmap, in_axes=[0, 0, None, None, None])
 def predict(m, P, A, Q, sqrt=False):
     if sqrt:
         P = tria(jnp.concatenate([A @ P, Q], axis=1))
@@ -16,6 +17,7 @@ def predict(m, P, A, Q, sqrt=False):
     return A @ m, A @ P @ A.T + Q
 
 
+@partial(jax.vmap, in_axes=[0, 0, 0, None, None])
 def update(m, P, H, R, sqrt=False):
     if sqrt:
         dim = m.shape[0]
@@ -37,6 +39,7 @@ def update(m, P, H, R, sqrt=False):
     return b, C
 
 
+@partial(jax.vmap, in_axes=[0, 0, None, None, None, None, None])
 def ekf(init, observation_function, A, Q, R, params=None, sqrt=False):
     def body(x, param):
         m, P = x
