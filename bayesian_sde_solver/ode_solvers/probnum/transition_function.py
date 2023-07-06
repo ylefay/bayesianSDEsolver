@@ -34,4 +34,4 @@ def transition_function(F: jnp.array, u: jnp.array, L: jnp.array, h: float, n_li
     integrand_Q_values = integrand_Q(linspace)
     Q = jnp.trapz(integrand_Q_values, linspace, axis=0)
 
-    return transition, xi, Q
+    return transition, xi, Q, A

@@ -45,8 +45,6 @@ def test_gbm_ekf1():
         )
     linspaces, sols = wrapped_filter_parabola(keys)
     trajectory, P = sols
-    print(trajectory[:, -1].std())
-    print(trajectory[:, -1].mean())
     npt.assert_almost_equal(
         trajectory[:, -1].std(), m0 * jnp.exp(a) * (jnp.exp(b) - 1) ** 0.5, decimal=1
     )

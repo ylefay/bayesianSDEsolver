@@ -26,6 +26,7 @@ def _solver(init, vector_field, h, N):
         _transition_function,
         _transition_mean,
         _transition_covariance,
+        _
     ) = IOUP_transition_function(theta=0.0, sigma=1.0, q=1, dt=h, dim=dim)
 
     if isinstance(init, MVNSqrt):
@@ -45,10 +46,7 @@ def _solver(init, vector_field, h, N):
             _observation_function, MVNStandard(jnp.zeros((dim,)), jnp.zeros((dim, dim)))
         )
 
-
-
-    filtered = filtering(observations, init, transition_model, observation_model, extended, None,
-                         params_transition=None, params_observation=(ts, ))
+    filtered = filtering(observations, init, transition_model, observation_model, extended, params_observation=(ts, ))
 
     if isinstance(init, MVNSqrt):
         return MVNSqrt(filtered.mean[-1], filtered.chol[-1])

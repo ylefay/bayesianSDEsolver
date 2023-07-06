@@ -19,8 +19,11 @@ def test_harmonic_oscillator():
     D = 1.0
     sig = 2.0
 
-    drift = lambda x: jnp.dot(jnp.array([[0.0, 1.0], [-D, -gamma]]), x)
-    sigma = lambda x: jnp.array([[0.0], [sig]])
+    M = jnp.array([[0.0, 1.0], [-D, -gamma]])
+    C = jnp.array([[0.0], [sig]])
+
+    drift = lambda x: jnp.dot(M, x)
+    sigma = lambda x: C
 
     x0 = jnp.ones((2,))
     N = 100

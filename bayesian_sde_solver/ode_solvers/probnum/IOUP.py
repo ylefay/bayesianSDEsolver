@@ -26,4 +26,4 @@ def transition_function(theta: float, sigma: float, q: int, dt: float, dim: int)
     def transition(x):
         return jnp.dot(A, x)
 
-    return transition, m, Q
+    return transition, m, Q, A
