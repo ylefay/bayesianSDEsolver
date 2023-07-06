@@ -85,10 +85,10 @@ def test_harmonic_oscillator_euler():
 
     def theoretical_variance_up_to_order3(k):
         t = k * delta
-        return sig**2 * jnp.array(
+        return sig ** 2 * jnp.array(
             [
-                [1 / 3 * t**3, 1 / 2 * t**2 - 1 / 2 * t**3 * gamma],
-                [1 / 2 * t**2 - 1 / 2 * t**3 * gamma, t - gamma * t**2 + 1 / 3 * t**3 * (2 * gamma**2 - D)]
+                [1 / 3 * t ** 3, 1 / 2 * t ** 2 - 1 / 2 * t ** 3 * gamma],
+                [1 / 2 * t ** 2 - 1 / 2 * t ** 3 * gamma, t - gamma * t ** 2 + 1 / 3 * t ** 3 * (2 * gamma ** 2 - D)]
             ]
         )
 

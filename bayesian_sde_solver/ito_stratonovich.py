@@ -1,6 +1,7 @@
+from typing import Callable
+
 import jax
 import jax.numpy as jnp
-from typing import Callable, Tuple
 from numpy.typing import ArrayLike
 
 

@@ -17,8 +17,8 @@ JAX_KEY = jax.random.PRNGKey(1337)
     jnp.vectorize,
     signature="()->(d)",
     excluded=(
-        1,
-        2,
+            1,
+            2,
     ),
 )
 @partial(jax.jit, static_argnums=(1, 2))
@@ -54,7 +54,7 @@ def gbm(delta, N=20, M=20):
 
 deltas = jnp.logspace(-4, -4, 1)
 Ndeltas = np.ceil(1 / deltas)
-Mdeltas = np.ceil(1 / deltas**0.0)
+Mdeltas = np.ceil(1 / deltas ** 0.0)
 ibms = jnp.empty(shape=(1, 1))
 for delta, N, M in zip(deltas, Ndeltas, Mdeltas):
     print(f"{delta}, {int(N)}, {int(M)}")

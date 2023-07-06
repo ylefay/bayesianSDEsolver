@@ -1,5 +1,5 @@
-from parsmooth import MVNSqrt, MVNStandard
 import jax.numpy as jnp
+from parsmooth import MVNSqrt, MVNStandard
 
 
 def insert(x, pos, y, axis):

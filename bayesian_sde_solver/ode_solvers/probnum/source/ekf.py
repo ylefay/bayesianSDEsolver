@@ -16,12 +16,12 @@ def predict(m, P, A, Q, sqrt=False):
     return A @ m, A @ P @ A.T + Q
 
 
-def update(m, P, y, H, R, sqrt=False):
+def update(m, P, H, R, sqrt=False):
     if sqrt:
         dim = m.shape[0]
-        y_diff = y - H @ m
+        y_diff = - H @ m
         M = jnp.block([[H @ P, R],
-                          [P, jnp.zeros_like(P, shape=(dim, dim))]])
+                       [P, jnp.zeros_like(P, shape=(dim, dim))]])
         chol_S = tria(M)
         cholP = chol_S[dim:, dim:]
         G = chol_S[dim:, :dim]
@@ -32,20 +32,20 @@ def update(m, P, y, H, R, sqrt=False):
     S = H @ P @ H.T + R
     S_invH = jlinalg.solve(S, H, sym_pos=True)
     K = (S_invH @ P).T
-    b = m + K @ (y - H @ m)
+    b = m + K @ H @ m
     C = P - K @ S @ K.T
     return b, C
 
 
-def ekf(init, observation_function, A, Q, R, params=None):
+def ekf(init, observation_function, A, Q, R, params=None, sqrt=False):
     def body(x, param):
         m, P = x
         if param is None:
             H = jax.jacfwd(observation_function, 0)(m)
         else:
             H = jax.jacfwd(observation_function, 0)(m, *param)
-        predm, predP = predict(m, P, A, Q)
-        m, P = update(predm, predP, m, H, R)
+        predm, predP = predict(m, P, A, Q, sqrt)
+        m, P = update(predm, predP, H, R, sqrt)
         return (m, P), (m, P)
 
     _, traj = jax.lax.scan(body, init, params)

@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from bayesian_sde_solver.foster_polynomial import get_approx as parabola_approx
 from bayesian_sde_solver.ode_solvers import euler
 from bayesian_sde_solver.sde_solver import sde_solver
+from bayesian_sde_solver.sde_solvers import hypoelliptic_diffusion_15_scheme
 
 JAX_KEY = jax.random.PRNGKey(1337)
 
@@ -41,15 +42,15 @@ def ibm(delta, N=20):
     return jnp.cov(sols[:, -1], rowvar=False)
 
 
-from bayesian_sde_solver.sde_solvers import hypoelliptic_diffusion_15_scheme
-
-
 @partial(jnp.vectorize, signature="()->(d,d)")
 def ibm_15(delta):
     keys = jax.random.split(JAX_KEY, 1_000_00)
 
-    drift = lambda x: jnp.dot(jnp.array([[0.0, 1.0], [0.0, 0.0]]), x)
-    sigma = lambda x: jnp.array([[0.0], [1.0]])
+    M = jnp.array([[0.0, 1.0], [0.0, 0.0]])
+    C = jnp.array([[0.0], [1.0]])
+
+    drift = lambda x: jnp.dot(M, x)
+    sigma = lambda x: C
 
     x0 = jnp.ones((2,))
     N = 1

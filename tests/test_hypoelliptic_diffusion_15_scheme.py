@@ -31,10 +31,10 @@ def test_harmonic_oscillator():
 
     def theoretical_variance_up_to_order3(k):
         t = k * h
-        return sig**2 * jnp.array(
+        return sig ** 2 * jnp.array(
             [
-                [1 / 3 * t**3, 1 / 2 * t**2 - 1 / 2 * t**3 * gamma],
-                [1 / 2 * t**2 - 1 / 2 * t**3 * gamma, t - gamma * t**2 + 1 / 3 * t**3 * (2 * gamma**2 - D)]
+                [1 / 3 * t ** 3, 1 / 2 * t ** 2 - 1 / 2 * t ** 3 * gamma],
+                [1 / 2 * t ** 2 - 1 / 2 * t ** 3 * gamma, t - gamma * t ** 2 + 1 / 3 * t ** 3 * (2 * gamma ** 2 - D)]
             ])
 
     linspaces, sols = wrapped_hypoelliptic_15(keys)
@@ -61,7 +61,8 @@ def test_fitzhugh_nagumo():
     alpha = 0.8
     s = 0.01
 
-    drift = lambda x: jnp.array([[1.0 / eps, -1.0 / eps], [gamma, -1]]) @ x + jnp.array([s / eps - x[0] ** 3 / eps, alpha])
+    drift = lambda x: jnp.array([[1.0 / eps, -1.0 / eps], [gamma, -1]]) @ x + jnp.array(
+        [s / eps - x[0] ** 3 / eps, alpha])
     sigma = lambda x: jnp.array([[0.0], [sig]])
 
     x1 = 1.0
@@ -74,17 +75,17 @@ def test_fitzhugh_nagumo():
     def theoretical_mean_up_to_order_2(k):
         t = k * h
         return x0 + t * jnp.array(
-            [1 / eps * (x1 - x1**3 - x2 + s) + t / 2 * 1 / eps * (1 / eps * (1 - 3 * x1**2) * (x1 - x1**3 - x2 + s)
-                    - (gamma * x1 - x2 - alpha)),
-             gamma * x1 - x2 + alpha + t / 2 * (gamma / eps * (x1 - x1**3 - x2 + s) - (gamma * x1 - x2 + alpha))])
-
+            [1 / eps * (x1 - x1 ** 3 - x2 + s) + t / 2 * 1 / eps * (
+                        1 / eps * (1 - 3 * x1 ** 2) * (x1 - x1 ** 3 - x2 + s)
+                        - (gamma * x1 - x2 - alpha)),
+             gamma * x1 - x2 + alpha + t / 2 * (gamma / eps * (x1 - x1 ** 3 - x2 + s) - (gamma * x1 - x2 + alpha))])
 
     def theoretical_variance_up_to_order3(k):
         t = k * h
-        return sig**2 * jnp.array(
+        return sig ** 2 * jnp.array(
             [
-                [1 / 3 * t**3 * 1 / eps**2, -1 / 2 * t**2 * 1 / eps],
-                [-1 / 2 * t**2 * 1 / eps, t - t**2],
+                [1 / 3 * t ** 3 * 1 / eps ** 2, -1 / 2 * t ** 2 * 1 / eps],
+                [-1 / 2 * t ** 2 * 1 / eps, t - t ** 2],
             ])
 
     linspaces, sols = wrapped_hypoelliptic_15(keys)
@@ -143,19 +144,21 @@ def test_synaptic_conductance():
     def theoretical_mean_up_to_order_2(k):
         t = k * h
         return (
-            x0 + t * drift(x0) + t ** 2  / 2 * jnp.array([
-                    -1.0 / C * (drift(x0)[0] * (G_L + x0[1] + x0[2]) + drift(x0)[1] * (x0[1] - V_E) + drift(x0)[2] * (x0[0] - V_I)),
-                    -1.0 / tau_E * drift(x0)[1],
-                    -1.0 / tau_I * drift(x0)[2],
-                ]
-            )
+                x0 + t * drift(x0) + t ** 2 / 2 * jnp.array([
+            -1.0 / C * (drift(x0)[0] * (G_L + x0[1] + x0[2]) + drift(x0)[1] * (x0[1] - V_E) + drift(x0)[2] * (
+                        x0[0] - V_I)),
+            -1.0 / tau_E * drift(x0)[1],
+            -1.0 / tau_I * drift(x0)[2],
+        ]
+        )
         )
 
     linspaces, sols = wrapped_hypoelliptic_15(keys)
 
     def theoretical_variance_up_to_order_3_first_coordinate(k):
         t = k * h
-        return t**3 / (3 * C**2) * ((x0[0] - V_E) ** 2 * sig_E**2 * x0[2] + (x0[0] - V_I) ** 2 * sig_I**2 * x0[2])
+        return t ** 3 / (3 * C ** 2) * (
+                    (x0[0] - V_E) ** 2 * sig_E ** 2 * x0[2] + (x0[0] - V_I) ** 2 * sig_I ** 2 * x0[2])
 
     npt.assert_array_almost_equal(
         jnp.mean(sols[:, 1], axis=0), theoretical_mean_up_to_order_2(1), decimal=2

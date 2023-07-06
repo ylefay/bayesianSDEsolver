@@ -12,6 +12,7 @@ from bayesian_sde_solver.foster_polynomial import get_approx as parabola_approx
 seed = jax.random.PRNGKey(1337)
 keys = jax.random.split(seed, 100000)
 
+
 @jax.jit
 @partial(jnp.vectorize, signature="()->(d)")
 def experiment(delta):
@@ -33,9 +34,10 @@ def experiment(delta):
     exp_trapz = jnp.exp(trapz)
     return exp_trapz.mean(axis=1)
 
+
 def theoretical_bound(delta):
-    return (1 + (jnp.sqrt(3/(2 * 3.1415)) + jnp.sqrt(2/3.1415)) * delta ** 0.5)
-    #return (1 + (1.5) * delta ** 0.5)
+    return (1 + (jnp.sqrt(3 / (2 * 3.1415)) + jnp.sqrt(2 / 3.1415)) * delta ** 0.5)
+    # return (1 + (1.5) * delta ** 0.5)
 
 
 deltas = jnp.logspace(-5, -4, 10)
