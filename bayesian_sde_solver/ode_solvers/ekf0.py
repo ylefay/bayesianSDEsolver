@@ -7,7 +7,7 @@ from bayesian_sde_solver.ode_solvers.probnum import interlace
 
 def solver(key, init, vector_field, h, N):
     """
-    Wrapper for EKF1 with new prior at each step.
+    Wrapper for EKF0 with new prior at each step.
     Using sqrt.
     """
     dim = init.shape[0]
