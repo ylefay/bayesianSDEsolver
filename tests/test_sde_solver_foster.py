@@ -8,6 +8,8 @@ from bayesian_sde_solver.ode_solvers import euler
 from bayesian_sde_solver.sde_solver import sde_solver
 
 JAX_KEY = jax.random.PRNGKey(1337)
+M = 100  # euler pts
+N = 100
 keys = jax.random.split(JAX_KEY, 1_000)
 def test_gbm_euler():
 
@@ -23,10 +25,8 @@ def test_gbm_euler():
     drift, sigma = to_stratonovich(drift, sigma)
 
     x0 = jnp.ones((1,))
-    N = 100
     delta = 1 / N
 
-    M = 100  # euler pts
 
     def wrapped_euler(_key, init, vector_field, T):
         return euler(init=init, vector_field=vector_field, h=T / M, N=M)

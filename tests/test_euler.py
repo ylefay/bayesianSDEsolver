@@ -19,7 +19,6 @@ def test_exponential():
 
 
 def test_sin():
-    # this tests that the euler method for the vector field f(x) = x gives  the exponential function.
     N = 1_000
     h = 1 / N
     x0 = jnp.ones((1,))

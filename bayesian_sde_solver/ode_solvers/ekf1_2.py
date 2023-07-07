@@ -20,7 +20,7 @@ def solver(_, init, vector_field, h, N):
         interlace(m_0, vector_field(m_0, 0.0)),
         var
     )
-    filtered = _solver(init, vector_field, h, N, sqrt=True)
+    filtered = _solver(init, vector_field, h, N, sqrt=False)
     m, P = filtered
     m_0, P_00 = m[::2], P[::2, ::2]
     return (m_0, P_00)  # return the law of X^1
