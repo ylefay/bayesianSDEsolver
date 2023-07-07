@@ -5,7 +5,7 @@ import jax.numpy as jnp
 
 def insert(x, pos, y, axis):
     """
-    Wrapper for jnp.insert handling MVNSqrt and MVNStandard objects.
+    Wrapper for jnp.insert handling tuples.
     """
     if isinstance(x, Tuple):
         return (jnp.insert(x[0], pos, y[0], axis),

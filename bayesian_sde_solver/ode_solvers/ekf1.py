@@ -16,7 +16,7 @@ def solver(key, init, vector_field, h, N):
         interlace(init, vector_field(init, 0.0)),
         jnp.zeros((2 * dim, 2 * dim))
     )
-    filtered = _solver(init, vector_field, h, N, sqrt=True)
+    filtered = _solver(init, vector_field, h, N, sqrt=False)
     m, P = filtered
     if key is not None:
         last_sample = m + P @ jax.random.multivariate_normal(key, jnp.zeros((2 * dim,)), jnp.eye(2 * dim))

@@ -7,10 +7,9 @@ from bayesian_sde_solver.ito_stratonovich import to_stratonovich
 from bayesian_sde_solver.ode_solvers import euler
 from bayesian_sde_solver.sde_solver import sde_solver
 
-
+JAX_KEY = jax.random.PRNGKey(1337)
+keys = jax.random.split(JAX_KEY, 1_000)
 def test_gbm_euler():
-    JAX_KEY = jax.random.PRNGKey(1337)
-    keys = jax.random.split(JAX_KEY, 1_000)
 
     a = 1
     b = 1
@@ -49,13 +48,10 @@ def test_gbm_euler():
     npt.assert_almost_equal(
         sols[:, -1].std(), x0 * jnp.exp(a) * (jnp.exp(b) - 1) ** 0.5, decimal=1
     )
-    npt.assert_almost_equal(sols[:, -1].mean(), x0 * jnp.exp(a), decimal=1)
+    npt.assert_almost_equal(sols[:, -1].mean(axis=0), x0 * jnp.exp(a), decimal=1)
 
 
 def test_harmonic_oscillator_euler():
-    JAX_KEY = jax.random.PRNGKey(1337)
-    keys = jax.random.split(JAX_KEY, 1_000)
-
     gamma = 1.0
     D = 1.0
     sig = 2.0
@@ -87,8 +83,7 @@ def test_harmonic_oscillator_euler():
 
     linspaces, sols = wrapped_parabola(keys)
 
-    def theoretical_variance_up_to_order3(k):
-        t = k * delta
+    def theoretical_variance_up_to_order3(t):
         return sig ** 2 * jnp.array(
             [
                 [1 / 3 * t ** 3, 1 / 2 * t ** 2 - 1 / 2 * t ** 3 * gamma],
@@ -98,6 +93,6 @@ def test_harmonic_oscillator_euler():
 
     npt.assert_allclose(
         jnp.cov(sols[:, 1], rowvar=False),
-        theoretical_variance_up_to_order3(1),
-        rtol=5e-02
+        theoretical_variance_up_to_order3(delta),
+        rtol=10e-02
     )

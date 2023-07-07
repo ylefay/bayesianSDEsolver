@@ -12,7 +12,7 @@ def _solver(init, vector_field, h, N, sqrt=False, EKF0=False):
     One derivative of the vector field is used.
     No observation noise.
     """
-    ts = jnp.linspace(0, N * h, N + 1)
+    ts = jnp.linspace(0, N * h - h, N)
     dim = int(init[0].shape[0] / 2)
     noise = jnp.zeros((dim, dim))
 
@@ -35,6 +35,6 @@ def _solver(init, vector_field, h, N, sqrt=False, EKF0=False):
         transition_covariance = jnp.linalg.cholesky(transition_covariance)
 
     filtered = ekf(init=init, observation_function=observation_function, A=transition_matrix,
-                   Q_or_cholQ=transition_covariance, R_or_cholR=noise, params=(ts[1:],), sqrt=sqrt)
+                   Q_or_cholQ=transition_covariance, R_or_cholR=noise, params=(ts,), sqrt=sqrt)
 
-    return filtered[0][-1], filtered[1][-1]
+    return filtered

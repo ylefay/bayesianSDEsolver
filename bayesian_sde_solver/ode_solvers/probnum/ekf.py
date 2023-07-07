@@ -3,7 +3,7 @@ import jax.numpy as jnp
 import jax.scipy.linalg as jlinalg
 
 #Original code from https://github.com/EEA-sensors/sqrt-parallel-smoothers/
-
+@jax.jit
 def _householder(a):
     if a.dtype == jnp.float64:
         eps = 1e-9
@@ -75,7 +75,6 @@ def _qr(A: jnp.ndarray, return_q=False):
     else:
         return R
 
-
 def tria(A):
     return qr(A.T)
 
@@ -88,17 +87,11 @@ def predict(x, A, Q_or_cholQ, sqrt=False):
 
     return A @ m, A @ P_or_cholP @ A.T + Q_or_cholQ
 
-
 def update(x, c, H, R_or_cholR, sqrt=False):
     m, P_or_cholP = x
     if sqrt:
-        nx = m.shape[0]
-        print(nx)
         y_diff = - H @ m - c
         ny = y_diff.shape[0]
-        print(H.shape)
-        print(R_or_cholR.shape)
-        print(P_or_cholP.shape)
         M = jnp.block([[H @ P_or_cholP, R_or_cholR],
                        [P_or_cholP, jnp.zeros((P_or_cholP.shape[0], R_or_cholR.shape[1]))]])
         chol_S = tria(M)
@@ -111,7 +104,7 @@ def update(x, c, H, R_or_cholR, sqrt=False):
         m = m + G @ jlinalg.solve_triangular(I, y_diff, lower=True)
         return m, cholP
     S = H @ P_or_cholP @ H.T + R_or_cholR
-    S_invH = jlinalg.solve(S, H, sym_pos=True)
+    S_invH = jlinalg.solve(S, H, assume_a='pos')
     K = (S_invH @ P_or_cholP).T
     b = m - K @ c
     C = P_or_cholP - K @ H @ P_or_cholP
@@ -120,13 +113,13 @@ def update(x, c, H, R_or_cholR, sqrt=False):
 
 def ekf(init, observation_function, A, Q_or_cholQ, R_or_cholR, params=None, sqrt=False):
     def body(x, param):
+        x = predict(x, A, Q_or_cholQ, sqrt)
         m, _ = x
         y = (m,) if param is None else (m, *param)
         H = jax.jacfwd(observation_function, 0)(*y)
         c = observation_function(*y)
-        x = predict(x, A, Q_or_cholQ, sqrt)
         x = update(x, c, H, R_or_cholR, sqrt)
-        return x, x
+        return x, None
 
-    _, traj = jax.lax.scan(body, init, params)
+    traj, _ = jax.lax.scan(body, init, params)
     return traj
