@@ -1,8 +1,7 @@
 import jax
-import jax.numpy as jnp
 
 from bayesian_sde_solver.ode_solvers.ekf import _solver
-from bayesian_sde_solver.ode_solvers.probnum import interlace
+from bayesian_sde_solver.ode_solvers.probnum import interlace, interlace_matrix
 
 
 def solver(_, init, vector_field, h, N):
@@ -12,25 +11,15 @@ def solver(_, init, vector_field, h, N):
     """
     # Todo: check that it's correct
     m_0, P_00 = init
-    dim = m_0.shape[0]
     H = jax.jacfwd(vector_field, 0)(m_0, 0.0)
     P_11 = H @ P_00 @ H.T
     P_01 = P_00 @ H.T
     P_10 = H @ P_00
-    var = jnp.block([[P_00, P_01],
-                     [P_10, P_11]]
-                    )
-    _var = var.copy()
-    # interlace the variance matrix
-    _var.at[::2, ::2].set(var.at[:dim, :dim].get())
-    _var.at[1::2, 1::2].set(var.at[dim:, dim:].get())
-    _var.at[1::2, ::2].set(var.at[dim:, :dim].get())
-    _var.at[::2, 1::2].set(var.at[:dim, dim:].get())
+    var = interlace_matrix(P_00, P_01, P_10, P_11)
     init = (
         interlace(m_0, vector_field(m_0, 0.0)),
-        _var
+        var
     )
-
     filtered = _solver(init, vector_field, h, N, sqrt=False)
     m, P = filtered
     m_0, P_00 = m[::2], P[::2, ::2]

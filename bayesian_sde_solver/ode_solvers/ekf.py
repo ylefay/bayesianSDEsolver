@@ -3,7 +3,6 @@ import jax.numpy as jnp
 
 from bayesian_sde_solver.ode_solvers.probnum import IOUP_transition_function
 from bayesian_sde_solver.ode_solvers.probnum import ekf
-from bayesian_sde_solver.ode_solvers.probnum import interlace
 
 
 def _solver(init, vector_field, h, N, sqrt=False, EKF0=False):
@@ -15,7 +14,7 @@ def _solver(init, vector_field, h, N, sqrt=False, EKF0=False):
     """
     ts = jnp.linspace(0, N * h, N + 1)
     dim = int(init[0].shape[0] / 2)
-    noise = jnp.zeros((dim, )).T if sqrt else jnp.zeros((dim, dim))
+    noise = jnp.zeros((dim, dim))
 
     if EKF0:
         def observation_function(x, t):
@@ -39,4 +38,3 @@ def _solver(init, vector_field, h, N, sqrt=False, EKF0=False):
                    Q_or_cholQ=transition_covariance, R_or_cholR=noise, params=(ts[1:],), sqrt=sqrt)
 
     return filtered[0][-1], filtered[1][-1]
-

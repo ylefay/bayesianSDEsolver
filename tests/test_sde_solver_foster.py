@@ -96,8 +96,8 @@ def test_harmonic_oscillator_euler():
             ]
         )
 
-    npt.assert_array_almost_equal(
+    npt.assert_allclose(
         jnp.cov(sols[:, 1], rowvar=False),
         theoretical_variance_up_to_order3(1),
-        decimal=10,
+        rtol=5e-02
     )

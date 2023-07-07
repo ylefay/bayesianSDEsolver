@@ -1,11 +1,12 @@
 from typing import Callable, Tuple
 
+from functools import partial
+
 import jax
 import jax.numpy as jnp
 from numpy.typing import ArrayLike
 
 from bayesian_sde_solver._utils import insert
-
 
 def sde_solver(
         key,

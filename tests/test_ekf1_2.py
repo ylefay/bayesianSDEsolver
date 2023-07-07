@@ -8,6 +8,7 @@ from bayesian_sde_solver.ito_stratonovich import to_stratonovich
 from bayesian_sde_solver.sde_solver import sde_solver
 from bayesian_sde_solver.ode_solvers import ekf1_2
 
+
 def test_gbm_ekf1():
     a = 1
     b = 1
@@ -20,11 +21,11 @@ def test_gbm_ekf1():
     P0 = jnp.zeros((1, 1))
     x0 = (m0, P0)
 
-    N = 30
+    N = 100
     delta = 1 / N
 
     JAX_KEY = jax.random.PRNGKey(1337)
-    keys = jax.random.split(JAX_KEY, 1_000_00)
+    keys = jax.random.split(JAX_KEY, 1_000_000)
 
     def wrapped_ekf1(_key, init, vector_field, T):
         M = 100
@@ -44,7 +45,5 @@ def test_gbm_ekf1():
         )
     linspaces, sols = wrapped_filter_parabola(keys)
     trajectory, P = sols
-    npt.assert_almost_equal(
-        trajectory[:, -1].std(), m0 * jnp.exp(a) * (jnp.exp(b) - 1) ** 0.5, decimal=1
-    )
-    npt.assert_almost_equal(trajectory[:, -1].mean(), m0 * jnp.exp(a), decimal=1)
+    npt.assert_allclose(trajectory[:, -1].std(), m0 * jnp.exp(a) * (jnp.exp(b) - 1) ** 0.5, rtol=5e-02)
+    npt.assert_allclose(trajectory[:, -1].mean(), m0 * jnp.exp(a), rtol=5e-02)

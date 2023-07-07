@@ -16,11 +16,10 @@ def solver(key, init, vector_field, h, N):
         interlace(init, vector_field(init, 0.0)),
         jnp.zeros((2 * dim, 2 * dim))
     )
-    filtered = _solver(init, vector_field, h, N, sqrt=False)
+    filtered = _solver(init, vector_field, h, N, sqrt=True)
     m, P = filtered
     if key is not None:
-        raise NotImplementedError
-        last_sample = m + chol @ jax.random.multivariate_normal(key, jnp.zeros((2 * dim,)), jnp.eye(2 * dim))
+        last_sample = m + P @ jax.random.multivariate_normal(key, jnp.zeros((2 * dim,)), jnp.eye(2 * dim))
         return jnp.vstack(last_sample[::2]).reshape((dim,))
     last_value = jnp.vstack(m[::2]).reshape((dim,))
     return last_value  # return only the mean

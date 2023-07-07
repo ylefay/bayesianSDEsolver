@@ -2,6 +2,7 @@ import jax
 import jax.numpy as jnp
 import jax.scipy.linalg as jlinalg
 
+#Original code from https://github.com/EEA-sensors/sqrt-parallel-smoothers/
 
 def _householder(a):
     if a.dtype == jnp.float64:
@@ -76,8 +77,7 @@ def _qr(A: jnp.ndarray, return_q=False):
 
 
 def tria(A):
-    q, r = qr(A.T)
-    return r.T
+    return qr(A.T)
 
 
 def predict(x, A, Q_or_cholQ, sqrt=False):
@@ -93,11 +93,22 @@ def update(x, c, H, R_or_cholR, sqrt=False):
     m, P_or_cholP = x
     if sqrt:
         nx = m.shape[0]
+        print(nx)
         y_diff = - H @ m - c
         ny = y_diff.shape[0]
+        print(H.shape)
+        print(R_or_cholR.shape)
+        print(P_or_cholP.shape)
+        M = jnp.block([[H @ P_or_cholP, R_or_cholR],
+                       [P_or_cholP, jnp.zeros((P_or_cholP.shape[0], R_or_cholR.shape[1]))]])
+        chol_S = tria(M)
 
-        raise NotImplementedError
-        m = m - K @ y_diff
+        cholP = chol_S[ny:, ny:]
+
+        G = chol_S[ny:, :ny]
+        I = chol_S[:ny, :ny]
+
+        m = m + G @ jlinalg.solve_triangular(I, y_diff, lower=True)
         return m, cholP
     S = H @ P_or_cholP @ H.T + R_or_cholR
     S_invH = jlinalg.solve(S, H, sym_pos=True)
