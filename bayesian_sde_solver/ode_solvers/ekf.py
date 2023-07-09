@@ -8,7 +8,7 @@ from bayesian_sde_solver.ode_solvers.probnum import ekf
 def _solver(init, vector_field, h, N, sqrt=False, EKF0=False):
     """
     EKF{0, 1} implementation.
-    Taking init, defining the prior.
+    IOUBM prior.
     One derivative of the vector field is used.
     No observation noise.
     """

@@ -46,7 +46,7 @@ def test_gbm_euler():
 
     linspaces, sols = wrapped_parabola(keys)
     npt.assert_almost_equal(
-        sols[:, -1].std(), x0 * jnp.exp(a) * (jnp.exp(b) - 1) ** 0.5, decimal=1
+        sols[:, -1].std(axis=0), x0 * jnp.exp(a) * (jnp.exp(b) - 1) ** 0.5, decimal=1
     )
     npt.assert_almost_equal(sols[:, -1].mean(axis=0), x0 * jnp.exp(a), decimal=1)
 

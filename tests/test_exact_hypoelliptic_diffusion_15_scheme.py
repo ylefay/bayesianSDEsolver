@@ -1,5 +1,6 @@
 import jax
 import jax.numpy as jnp
+import jax.scipy.linalg as linalg
 import numpy.testing as npt
 
 from bayesian_sde_solver.sde_solvers import diag_15_scheme
@@ -32,22 +33,23 @@ def test_synaptic_conductance():
 
     def drift(x):
         return jnp.array(
-        [
-            1.0
-            / C
-            * (-G_L * (x[0] - V_L) - x[1] * (x[0] - V_E) - x[2] * (x[0] - V_I) + I_inj),
-            -1.0 / tau_E * (x[1] - gbar_E),
-            -1.0 / tau_I * (x[2] - gbar_I),
-        ]
-    )
+            [
+                1.0
+                / C
+                * (-G_L * (x[0] - V_L) - x[1] * (x[0] - V_E) - x[2] * (x[0] - V_I) + I_inj),
+                -1.0 / tau_E * (x[1] - gbar_E),
+                -1.0 / tau_I * (x[2] - gbar_I),
+            ]
+        )
+
     def sigma(x):
         return jnp.array(
-        [
-            [0.0, 0.0, 0.0],
-            [sig_E * x[1] ** 0.5, 0.0, 0.0],
-            [0.0, sig_I * x[2] ** 0.5, 0.0],
-        ]
-    )
+            [
+                [0.0, 0.0, 0.0],
+                [sig_E * x[1] ** 0.5, 0.0, 0.0],
+                [0.0, sig_I * x[2] ** 0.5, 0.0],
+            ]
+        )
 
     @jax.vmap
     def wrapped_hypoelliptic_15(key_op):
@@ -92,12 +94,15 @@ def test_harmonic_oscillator():
     D = 1.0
     sig = 2.0
 
-    drift = lambda x: jnp.dot(jnp.array([[0.0, 1.0], [-D, -gamma]]), x)
-    sigma = lambda x: jnp.array([[0.0, 0.0], [sig, 0.0]])
+    C = jnp.array([[0.0, 0.0], [sig, 0.0]])
+    Mm = jnp.array([[0.0, 1.0], [-D, -gamma]])
+
+    drift = lambda x: jnp.dot(Mm, x)
+    sigma = lambda x: C
 
     x0 = jnp.ones((2,))
     N = 100
-    h = 2 / N
+    h = 1 / N
 
     def theoretical_variance_up_to_order3(k):
         t = k * h
@@ -107,7 +112,32 @@ def test_harmonic_oscillator():
                 [1 / 2 * t ** 2 - 1 / 2 * t ** 3 * gamma, t - gamma * t ** 2 + 1 / 3 * t ** 3 * (2 * gamma ** 2 - D)]
             ])
 
+    def theoretical_mean_variance(t):
+        mean = linalg.expm(Mm * t) @ x0
+
+        @jax.vmap
+        def integrand_var(s):
+            B = linalg.expm(Mm * s) @ C
+            return B @ B.T
+
+        linspace_int = jnp.linspace(0, t, 1000)
+        var = jnp.trapz(integrand_var(linspace_int), linspace_int, axis=0)
+        return mean, var
+
     linspaces, sols = wrapped_hypoelliptic_15(keys)
+    m, cov = theoretical_mean_variance(N * h)
+
+    npt.assert_allclose(
+        sols[:, -1].mean(axis=0),
+        m,
+        rtol=10e-02
+    )
+    if sig != 0:
+        npt.assert_allclose(
+            jnp.cov(sols[:, -1], rowvar=False),
+            cov,
+            rtol=10e-02
+        )
     npt.assert_array_almost_equal(
         jnp.cov(sols[:, 1], rowvar=False),
         theoretical_variance_up_to_order3(1),

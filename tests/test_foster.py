@@ -23,8 +23,8 @@ def test_moments():
         return eval_fn(h, h, *coeffs)
 
     increments = get_increments(keys)
-    npt.assert_almost_equal(increments.mean(), 0, decimal=2)
-    npt.assert_almost_equal(increments.std(), h**0.5, decimal=2)
+    npt.assert_almost_equal(increments.mean(axis=0), 0, decimal=2)
+    npt.assert_almost_equal(increments.std(axis=0), h**0.5, decimal=2)
 
 
 def test_path_integral():

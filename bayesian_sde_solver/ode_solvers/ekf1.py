@@ -5,7 +5,7 @@ from bayesian_sde_solver.ode_solvers.ekf import _solver
 from bayesian_sde_solver.ode_solvers.probnum import interlace
 
 
-def solver(key, init, vector_field, h, N):
+def solver(key, init, vector_field, h, N, sqrt=False):
     """
     Wrapper for EKF1 with new prior at each step.
     Using sqrt.
@@ -16,7 +16,7 @@ def solver(key, init, vector_field, h, N):
         interlace(init, vector_field(init, 0.0)),
         jnp.zeros((2 * dim, 2 * dim))
     )
-    filtered = _solver(init, vector_field, h, N, sqrt=False)
+    filtered = _solver(init, vector_field, h, N, sqrt)
     m, P = filtered
     if key is not None:
         last_sample = m + P @ jax.random.multivariate_normal(key, jnp.zeros((2 * dim,)), jnp.eye(2 * dim))
