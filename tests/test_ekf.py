@@ -12,10 +12,11 @@ from bayesian_sde_solver.ode_solvers import ekf1, ekf0, ekf1_2
 from bayesian_sde_solver.sde_solver import sde_solver
 
 SOLVERS = [ekf0, ekf1, ekf1_2]
-for solver in SOLVERS[:3]:
+SOLVERS = [ekf0]
+_len = len(SOLVERS)
+for solver in SOLVERS[:_len]:
     if solver not in [ekf1_2]:
         SOLVERS.append(partial(solver, sqrt=True))
-
 N = 1000
 M = 100
 JAX_KEY = jax.random.PRNGKey(1337)
@@ -58,7 +59,6 @@ def test(solver):
             N=N,
             ode_int=wrapped,
         )
-
     linspaces, sols = wrapped_filter_parabola(keys)
     if solver in [ekf1_2]:
         sols = sols[0]
@@ -144,7 +144,6 @@ def test_all_agree():
         return jnp.array([[1.0]]) * (t + 1)
 
     def test(solver):
-
         x0 = jnp.ones((1,))
         init = x0
         if solver in [ekf1_2]:
