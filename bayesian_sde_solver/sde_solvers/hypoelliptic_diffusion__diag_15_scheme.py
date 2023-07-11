@@ -36,16 +36,16 @@ def solver(key, init, drift, sigma, h, N):
                 [
                     [
                         jnp.reshape(
-                            partialua(x) @ GammaGammaT(x) @ partialua(x).T * h**3 / 3,
+                            partialua(x) @ GammaGammaT(x) @ partialua(x).T * h ** 3 / 3,
                             (1, 1),
                         ),
                         jnp.reshape(
-                            partialua(x) @ GammaGammaT(x) * h**2 / 2, (1, dim - 1)
+                            partialua(x) @ GammaGammaT(x) * h ** 2 / 2, (1, dim - 1)
                         ),
                     ],
                     [
                         jnp.reshape(
-                            partialua(x) @ GammaGammaT(x) * h**2 / 2, (dim - 1, 1)
+                            partialua(x) @ GammaGammaT(x) * h ** 2 / 2, (dim - 1, 1)
                         ),
                         GammaGammaT(x) * h,
                     ],
@@ -53,11 +53,11 @@ def solver(key, init, drift, sigma, h, N):
             ),
         )  # up to leading order...
         out = (
-            x
-            + h * drift(x)
-            + h**2 / 2 * partialuvdrift(x) @ drift(x)
-            + h**2 / 4 * laplaceweighted(sigma, drift, x)
-            + epsilon_k
+                x
+                + h * drift(x)
+                + h ** 2 / 2 * partialuvdrift(x) @ drift(x)
+                + h ** 2 / 4 * laplaceweighted(sigma, drift, x)
+                + epsilon_k
         )
         return out, out
 

@@ -27,4 +27,4 @@ def test_sin():
         return jnp.sin(t)
 
     x = euler(x0, vector_field, h, N)
-    npt.assert_almost_equal(x, 2-np.cos(1), decimal=3)
+    npt.assert_almost_equal(x, 2 - np.cos(1), decimal=3)

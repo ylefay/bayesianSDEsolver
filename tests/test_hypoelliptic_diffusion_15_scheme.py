@@ -66,7 +66,8 @@ def test_fitzhugh_nagumo():
 
     def drift(x):
         return jnp.array([[1.0 / eps, -1.0 / eps], [gamma, -1]]) @ x + jnp.array(
-        [s / eps - x[0] ** 3 / eps, alpha])
+            [s / eps - x[0] ** 3 / eps, alpha])
+
     def sigma(x):
         return jnp.array([[0.0], [sig]])
 
@@ -132,15 +133,16 @@ def test_synaptic_conductance():
 
     def drift(x):
         return jnp.array(
-        [
-            1.0 / C * (-G_L * (x[0] - V_L) - x[1] * (x[0] - V_E) - x[2] * (x[0] - V_I) + I_inj),
-            -1.0 / tau_E * (x[1] - gbar_E),
-            -1.0 / tau_I * (x[2] - gbar_I),
-        ])
+            [
+                1.0 / C * (-G_L * (x[0] - V_L) - x[1] * (x[0] - V_E) - x[2] * (x[0] - V_I) + I_inj),
+                -1.0 / tau_E * (x[1] - gbar_E),
+                -1.0 / tau_I * (x[2] - gbar_I),
+            ])
+
     def sigma(x):
         return jnp.array(
-        [[0.0, 0.0], [sig_E * x[1] ** 0.5, 0.0], [0.0, sig_I * x[2] ** 0.5]]
-    )
+            [[0.0, 0.0], [sig_E * x[1] ** 0.5, 0.0], [0.0, sig_I * x[2] ** 0.5]]
+        )
 
     @jax.vmap
     def wrapped_hypoelliptic_15(key_op):

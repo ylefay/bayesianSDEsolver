@@ -39,8 +39,8 @@ def test_gbm_moment():
     )  # strong order 1, locally 2
     npt.assert_array_almost_equal(
         sols[:, 1].var(),
-        x0**2
+        x0 ** 2
         * (1 + 2 * a * h + (2 * a * h) ** 2 / 2)
-        * (b**2 * h + (b**2 * h) ** 2 / 2),
+        * (b ** 2 * h + (b ** 2 * h) ** 2 / 2),
         decimal=2,
     )

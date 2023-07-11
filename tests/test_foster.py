@@ -24,7 +24,7 @@ def test_moments():
 
     increments = get_increments(keys)
     npt.assert_almost_equal(increments.mean(axis=0), 0, decimal=2)
-    npt.assert_almost_equal(increments.std(axis=0), h**0.5, decimal=2)
+    npt.assert_almost_equal(increments.std(axis=0), h ** 0.5, decimal=2)
 
 
 def test_path_integral():
@@ -54,5 +54,5 @@ def test_path_integral():
 
     npt.assert_array_almost_equal(trapz.mean(axis=1), jnp.array([0.0, 0.0]), decimal=2)
     npt.assert_array_almost_equal(
-        jnp.cov(trapz), h**3 / 3 * jnp.identity(2), decimal=2
+        jnp.cov(trapz), h ** 3 / 3 * jnp.identity(2), decimal=2
     )

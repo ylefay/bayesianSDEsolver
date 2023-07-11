@@ -2,6 +2,7 @@ from functools import partial
 
 import jax
 import jax.numpy as jnp
+
 from bayesian_sde_solver.foster_polynomial import get_approx as _parabola_approx
 from bayesian_sde_solver.ito_stratonovich import to_stratonovich
 from bayesian_sde_solver.ode_solvers import ekf0, ekf1_2
@@ -23,12 +24,10 @@ bms_inc = bms[::K - 1]
 solver = ekf0
 
 
-@jax.jit
 def get_approx(bms_inc, dim=1):
     _, eval_approx = _parabola_approx()
 
     def parabola_approx(key, dt):
-        assert len(key) == len(bms_inc)
         eps_1 = jax.random.normal(key, shape=(1, dim))
         eps_1 *= jnp.sqrt(0.5 * dt)
         return bms_inc, eps_1

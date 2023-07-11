@@ -11,8 +11,9 @@ JAX_KEY = jax.random.PRNGKey(1337)
 M = 100  # euler pts
 N = 100
 keys = jax.random.split(JAX_KEY, 1_000)
-def test_gbm_euler():
 
+
+def test_gbm_euler():
     a = 1
     b = 1
 
@@ -26,7 +27,6 @@ def test_gbm_euler():
 
     x0 = jnp.ones((1,))
     delta = 1 / N
-
 
     def wrapped_euler(_key, init, vector_field, T):
         return euler(init=init, vector_field=vector_field, h=T / M, N=M)
