@@ -16,3 +16,15 @@ def test_exponential():
 
     x = euler(x0, vector_field, h, N)
     npt.assert_almost_equal(x, np.exp(1), decimal=3)
+
+
+def test_sin():
+    N = 1_000
+    h = 1 / N
+    x0 = jnp.ones((1,))
+
+    def vector_field(x, t):
+        return jnp.sin(t)
+
+    x = euler(x0, vector_field, h, N)
+    npt.assert_almost_equal(x, 2 - np.cos(1), decimal=3)

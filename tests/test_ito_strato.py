@@ -16,8 +16,7 @@ def test_symmetry():
     npt.assert_equal(_drift(x, t), drift(x, t))
 
     drift = lambda x, t: x
-    diff = lambda x, t: jnp.array([[x[0], 2 * x[1]],
-                                   [3 * x[0] + 4 * x[1], 5 * x[1]]])
+    diff = lambda x, t: jnp.array([[x[0], 2 * x[1]], [3 * x[0] + 4 * x[1], 5 * x[1]]])
     tilde_drift, tilde_diff = to_stratonovich(*to_ito(drift, diff))
     x = jnp.array([0.5, 0.9])
     t = 1.0
@@ -53,12 +52,16 @@ def test_md():
     # this tests that the correction is indeed correct,
     # see Kloeden, Pattern, 1999, chapter 4.9.
     drift = lambda x, t: x
-    diff = lambda x, t: jnp.array([[x[0], 2 * x[1]],
-                                   [3 * x[0] + 4 * x[1], 5 * x[1]]])
+    diff = lambda x, t: jnp.array([[x[0], 2 * x[1]], [3 * x[0] + 4 * x[1], 5 * x[1]]])
     x = jnp.array([0.5, 0.9])
     t = 1.0
     ito_drift, _ = to_ito(drift, diff)
-    npt.assert_array_almost_equal(ito_drift(x, t), drift(x, t) +
-                                  0.5 * jnp.array([(x[0] * 1 + 2 * x[1] * 0 + (3 * x[0] + 4 * x[1]) * 0 + 5 * x[1] * 2),
-                                                   (x[0] * 3 + 2 * x[1] * 0 + (3 * x[0] + 4 * x[1]) * 4 + 5 * x[
-                                                       1] * 5)]))
+    npt.assert_array_almost_equal(
+        ito_drift(x, t),
+        drift(x, t) + 0.5 * jnp.array(
+            [
+                (x[0] * 1 + 2 * x[1] * 0 + (3 * x[0] + 4 * x[1]) * 0 + 5 * x[1] * 2),
+                (x[0] * 3 + 2 * x[1] * 0 + (3 * x[0] + 4 * x[1]) * 4 + 5 * x[1] * 5),
+            ]
+        ),
+    )

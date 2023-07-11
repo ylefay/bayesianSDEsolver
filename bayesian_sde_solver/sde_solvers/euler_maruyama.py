@@ -4,7 +4,7 @@ import numpy as np
 
 
 def solver(key, init, drift, sigma, h, N):
-    dim = sigma(init, 0.).shape[1]
+    dim = sigma(init, 0.0).shape[1]
 
     def body(x, inp):
         key_k, t = inp

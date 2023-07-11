@@ -1,27 +1,25 @@
 import jax
 import jax.numpy as jnp
-from probdiffeq import ivpsolvers, ivpsolve
-from probdiffeq.statespace import recipes
-from probdiffeq.strategies import filters
+
+from bayesian_sde_solver.ode_solvers.ekf1 import _solver
+from bayesian_sde_solver.ode_solvers.probnum import interlace
 
 
-def solver(key, init, vector_field, h, N):
+def solver(key, init, vector_field, h, N, sqrt=False):
+    """
+    Wrapper for EKF0 with new prior at each step.
+    Using sqrt.
+    """
     dim = init.shape[0]
-
-    def vf(x, t=0.0, p=None):
-        return vector_field(x, t)
-
-    ts0 = ivpsolvers.solver_calibrationfree(*filters.filter(
-        *recipes.ts0_dense(ode_order=1, num_derivatives=1, ode_shape=(dim,))))  # ts0_iso O(d), ts0_dense O(d^3)"""
-    """ts0 = ivpsolvers.solver_calibrationfree(*filters.filter(
-        *recipes.ts0_iso(ode_order=1, num_derivatives=1)))"""
-    ts = jnp.linspace(0, N * h, N + 1)
-    solution = ivpsolve.solve_fixed_grid(vector_field=vf, initial_values=(init,), solver=ts0, grid=ts)
-    if key is None:
-        y, samples = solution.marginals.marginal_nth_derivative(0).mean[-1], solution.marginals
-    else:
-        m = solution.marginals.marginal_nth_derivative(0).mean[-1]
-        cholesky = solution.marginals.marginal_nth_derivative(0).cov_sqrtm_lower[-1]
-        normal = jax.random.multivariate_normal(key, jnp.zeros(dim), jnp.eye(dim))
-        y, samples = m + cholesky @ normal, solution.marginals
-    return y  # return only the mean of the last point of the trajectory, you may want the covariance as well
+    # Zero initial variance
+    init = (
+        interlace(init, vector_field(init, 0.0)),
+        jnp.zeros((2 * dim, 2 * dim))
+    )
+    filtered = _solver(init, vector_field, h, N, sqrt, EKF0=True)
+    m, P = filtered
+    if key is not None:
+        last_sample = m + P @ jax.random.multivariate_normal(key, jnp.zeros((2 * dim,)), jnp.eye(2 * dim))
+        return jnp.vstack(last_sample[::2]).reshape((dim,))
+    last_value = jnp.vstack(m[::2]).reshape((dim,))
+    return last_value  # return only the mean

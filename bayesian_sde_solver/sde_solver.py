@@ -1,17 +1,22 @@
+from typing import Callable, Tuple
+
 import jax
 import jax.numpy as jnp
+from numpy.typing import ArrayLike
+
+from bayesian_sde_solver._utils import insert
 
 
 def sde_solver(
         key,
-        drift,
-        sigma,
-        x0,
-        bm,
-        delta,
-        N,
-        ode_int,
-):
+        drift: Callable,
+        sigma: Callable,
+        x0: ArrayLike,
+        bm: Callable,
+        delta: float,
+        N: int,
+        ode_int: Callable,
+) -> Tuple[ArrayLike, ArrayLike]:
     init = x0
     get_coeffs, eval_fn = bm()
 
@@ -29,5 +34,5 @@ def sde_solver(
 
     inps = keys, ts[:-1]
     _, samples = jax.lax.scan(body, init, inps)
-    samples = jnp.insert(samples, 0, init, axis=0)
+    samples = insert(samples, 0, init, axis=0)
     return ts, samples
