@@ -12,14 +12,13 @@ from bayesian_sde_solver.ode_solvers import ekf1, ekf0, ekf1_2
 from bayesian_sde_solver.sde_solver import sde_solver
 
 SOLVERS = [ekf0, ekf1, ekf1_2]
-SOLVERS = [ekf0]
 _len = len(SOLVERS)
 """for solver in SOLVERS[:_len]:
     if solver not in [ekf1_2]:
         SOLVERS.append(partial(solver, sqrt=True))"""
 
 N = 1000
-M = 5
+M = 1
 JAX_KEY = jax.random.PRNGKey(1337)
 keys = jax.random.split(JAX_KEY, 1_000_0)
 
@@ -27,7 +26,7 @@ keys = jax.random.split(JAX_KEY, 1_000_0)
 @pytest.mark.parametrize("solver", SOLVERS)
 def test(solver):
     mu = 1.0
-    sig = 1.0
+    sig = 3.14/4
 
     def drift(x, t):
         return mu * x
@@ -37,11 +36,11 @@ def test(solver):
 
     drift, sigma = to_stratonovich(drift, sigma)
 
-    x0 = jnp.ones((1,))
-    init = x0
+    m0 = jnp.ones((1,))
+    x0 = m0
     if solver in [ekf1_2]:
-        P0 = jnp.zeros((x0.shape[0], x0.shape[0]))
-        init = (x0, P0)
+        P0 = jnp.zeros((m0.shape[0], m0.shape[0]))
+        x0 = (m0, P0)
 
     delta = 1 / N
 
@@ -54,7 +53,7 @@ def test(solver):
             key=key_op,
             drift=drift,
             sigma=sigma,
-            x0=init,
+            x0=x0,
             bm=parabola_approx,
             delta=delta,
             N=N,
@@ -64,7 +63,7 @@ def test(solver):
     linspaces, sols = wrapped_filter_parabola(keys)
     if solver in [ekf1_2]:
         sols = sols[0]
-    npt.assert_allclose(sols[:, -1].mean(axis=0), x0 * jnp.exp(mu * delta * N), rtol=10e-02)
+    npt.assert_allclose(sols[:, -1].mean(axis=0), m0 * jnp.exp(mu * delta * N), rtol=10e-02)
     npt.assert_allclose(sols[:, -1].std(axis=0),
                         (0.5 * (jnp.exp(sig * N * delta * 2) - 1)) ** 0.5, rtol=10e-02)
 
