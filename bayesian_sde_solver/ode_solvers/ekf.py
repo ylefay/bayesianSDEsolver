@@ -12,7 +12,7 @@ def _solver(init, vector_field, h, N, sqrt=False, EKF0=False):
     One derivative of the vector field is used.
     No observation noise.
     """
-    ts = jnp.linspace(0, N * h - h, N)
+    ts = jnp.linspace(h, N * h, N)
     dim = int(init[0].shape[0] / 2)
     noise = jnp.zeros((dim, dim))
 
