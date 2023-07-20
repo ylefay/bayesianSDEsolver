@@ -24,26 +24,26 @@ def get_approx(dim=1):
     return parabolas, eval_parabola
 
 
-def get_approx_and_brownian(dim=1, N=1000):
+def get_approx_and_brownian(dim=1, N=100):
     # this gives the parabola approximation of a Brownian motion, as well as the corresponding Brownian motion.
 
     def parabolas(key, dt):
-        bm = jax.random.normal(key, shape=(N-1, dim))
-        bm = jnp.insert(bm, 0, jnp.zeros((dim, )), axis=0)
-        bm = jnp.cumsum(bm, axis=0)
+        incs = jax.random.normal(key, shape=(N, dim))
+        bm = jnp.cumsum(incs, axis=0)
         bm *= jnp.sqrt(dt / N)
-        _is = jnp.arange(N)
+
+        _is = jnp.arange(1, N + 1)
 
         eps_0 = bm.at[-1].get()
 
         @jax.vmap
         def integrand(i):
-            u = i / (N - 1)
+            u = (i + 1) / N
             return - (bm.at[i].get() - eps_0 * u) * jnp.sqrt(6)
 
         eps_1 = jnp.trapz(integrand(_is), dx=1 / N, axis=0)
 
-        return eps_0, eps_1, bm
+        return eps_0, eps_1, incs
 
     def eval_parabola(t, dt, a, b, _):
         _, _eval_parabola = get_approx(dim=dim)
