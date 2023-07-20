@@ -16,7 +16,7 @@ def sde_solver(
         delta: float,
         N: int,
         ode_int: Callable,
-) -> Tuple[ArrayLike, ArrayLike]:
+) -> Tuple[ArrayLike, ArrayLike, Tuple[ArrayLike]]:
     init = x0
     get_coeffs, eval_fn = bm()
 
@@ -27,12 +27,13 @@ def sde_solver(
         func = lambda t: eval_fn(t, delta, *coeffs_k)
         vector_field = lambda z, t: drift(z, t + t_k) + sigma(z, t + t_k) @ jax.jacfwd(func)(t)
         next_x = ode_int(sample_key, init=x, vector_field=vector_field, T=delta)
-        return next_x, next_x
+        return next_x, (next_x, *coeffs_k)
 
     keys = jax.random.split(key, N)
     ts = jnp.linspace(0, N * delta, N + 1)
 
     inps = keys, ts[:-1]
     _, samples = jax.lax.scan(body, init, inps)
-    samples = insert(samples, 0, init, axis=0)
-    return ts, samples
+    traj, *coeffs = samples
+    traj = insert(traj, 0, init, axis=0)
+    return ts, traj, *coeffs

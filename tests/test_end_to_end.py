@@ -1,4 +1,3 @@
-from functools import partial
 
 import jax
 import jax.numpy as jnp
@@ -60,8 +59,7 @@ def test(solver):
             N=N,
             ode_int=wrapped,
         )
-    with jax.disable_jit():
-        linspaces, sols = wrapped_filter_parabola(keys)
+    linspaces, sols, *_ = wrapped_filter_parabola(keys)
     if solver in [ekf1_2]:
         sols = sols[0]
     npt.assert_allclose(sols[:, -1].mean(axis=0), x0 * jnp.exp(mu * delta * N), rtol=10e-02)
@@ -108,7 +106,7 @@ def test_harmonic_oscillator(solver):
             ode_int=wrapped,
         )
 
-    linspaces, sols = wrapped_filter_parabola(keys)
+    linspaces, sols, *_ = wrapped_filter_parabola(keys)
     if solver in [ekf1_2]:
         sols = sols[0]
 
@@ -169,7 +167,7 @@ def test_all_agree():
                 ode_int=wrapped,
             )
 
-        linspaces, sols = wrapped_filter_parabola(keys)
+        linspaces, sols, *_ = wrapped_filter_parabola(keys)
         if solver in [ekf1_2]:
             sols = sols[0]
         return sols[:, -1].mean(axis=0), sols[:, -1].std(axis=0)
