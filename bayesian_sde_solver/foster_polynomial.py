@@ -24,7 +24,7 @@ def get_approx(dim=1):
     return parabolas, eval_parabola
 
 
-def get_approx_and_brownian(dim=1, N=100):
+def get_approx_and_brownian(dim=1, N=15000):
     # this gives the parabola approximation of a Brownian motion, as well as the corresponding Brownian motion.
 
     def parabolas(key, dt):

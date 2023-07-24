@@ -7,10 +7,10 @@ from bayesian_sde_solver.sde_solver import sde_solver
 from bayesian_sde_solver.sde_solvers import euler_maruyama_piecewise
 import matplotlib.pyplot as plt
 
-Ns = [200]
+Ns = [1000]
 M = 1
 JAX_KEY = jax.random.PRNGKey(1337)
-keys = jax.random.split(JAX_KEY, 1000)
+keys = jax.random.split(JAX_KEY, 25)
 
 gamma = 1.0
 D = 1.0

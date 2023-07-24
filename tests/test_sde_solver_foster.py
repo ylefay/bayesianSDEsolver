@@ -44,7 +44,7 @@ def test_gbm_euler():
             ode_int=wrapped_euler,
         )
 
-    linspaces, sols = wrapped_parabola(keys)
+    linspaces, sols, *_ = wrapped_parabola(keys)
     npt.assert_almost_equal(
         sols[:, -1].std(axis=0), x0 * jnp.exp(a) * (jnp.exp(b) - 1) ** 0.5, decimal=1
     )
@@ -81,7 +81,7 @@ def test_harmonic_oscillator_euler():
             ode_int=wrapped_euler,
         )
 
-    linspaces, sols = wrapped_parabola(keys)
+    linspaces, sols, *_ = wrapped_parabola(keys)
 
     def theoretical_variance_up_to_order3(t):
         return sig ** 2 * jnp.array(
