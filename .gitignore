@@ -213,3 +213,9 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+
+# CSV
+*.csv
+
+#utilitary script
+./tests/read_res.py

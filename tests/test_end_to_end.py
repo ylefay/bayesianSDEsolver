@@ -1,21 +1,19 @@
-
 import jax
 import jax.numpy as jnp
 import jax.scipy.linalg as linalg
 import numpy.testing as npt
 import pytest
-
+from functools import partial
 from bayesian_sde_solver.foster_polynomial import get_approx as parabola_approx
 from bayesian_sde_solver.ito_stratonovich import to_stratonovich
-from bayesian_sde_solver.ode_solvers import ekf1, ekf0, ekf1_2
+from bayesian_sde_solver.ode_solvers import ekf1, ekf0, ekf0_2, ekf1_2
 from bayesian_sde_solver.sde_solver import sde_solver
 
-SOLVERS = [ekf0, ekf1, ekf1_2]
-SOLVERS = [ekf0]
+SOLVERS = [ekf0, ekf1, ekf1_2, ekf0_2]
 _len = len(SOLVERS)
-"""for solver in SOLVERS[:_len]:
-    if solver not in [ekf1_2]:
-        SOLVERS.append(partial(solver, sqrt=True))"""
+for solver in SOLVERS[:_len]:
+    if solver not in [ekf1_2, ekf0_2]:
+        SOLVERS.append(partial(solver, sqrt=False))
 
 N = 1000
 M = 5
@@ -38,7 +36,7 @@ def test(solver):
 
     x0 = jnp.ones((1,))
     init = x0
-    if solver in [ekf1_2]:
+    if solver in [ekf0_2, ekf1_2]:
         P0 = jnp.zeros((x0.shape[0], x0.shape[0]))
         init = (x0, P0)
 
@@ -71,7 +69,7 @@ def test(solver):
 def test_harmonic_oscillator(solver):
     gamma = 1.0
     D = 1.0
-    sig = 2.0
+    sig = 1.0
 
     Mm = jnp.array([[0.0, 1.0], [-D, -gamma]])
     C = jnp.array([[0.0], [sig]])
@@ -84,7 +82,7 @@ def test_harmonic_oscillator(solver):
 
     x0 = jnp.ones((2,))
     init = x0
-    if solver in [ekf1_2]:
+    if solver in [ekf0_2, ekf1_2]:
         P0 = jnp.zeros((x0.shape[0], x0.shape[0]))
         init = (x0, P0)
 
@@ -105,9 +103,8 @@ def test_harmonic_oscillator(solver):
             N=N,
             ode_int=wrapped,
         )
-
     linspaces, sols, *_ = wrapped_filter_parabola(keys)
-    if solver in [ekf1_2]:
+    if solver in [ekf0_2, ekf1_2]:
         sols = sols[0]
 
     def theoretical_mean_variance(t):
@@ -168,7 +165,7 @@ def test_all_agree():
             )
 
         linspaces, sols, *_ = wrapped_filter_parabola(keys)
-        if solver in [ekf1_2]:
+        if solver in [ekf0_2, ekf1_2]:
             sols = sols[0]
         return sols[:, -1].mean(axis=0), sols[:, -1].std(axis=0)
 
