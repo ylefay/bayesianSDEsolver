@@ -22,8 +22,7 @@ def predict(x, A, Q_or_cholQ, sqrt=False):
 def update(x, c, H, R_or_cholR, sqrt=False):
     m, P_or_cholP = x
     if sqrt:
-        y_diff = - c
-        ny = y_diff.shape[0]
+        ny = c.shape[0]
         nx = m.shape[0]
         M = jnp.block([[H @ P_or_cholP, R_or_cholR],
                        [P_or_cholP, jnp.zeros_like(P_or_cholP, shape=(nx, ny))]])
@@ -34,7 +33,7 @@ def update(x, c, H, R_or_cholR, sqrt=False):
         G = chol_S[ny:, :ny]
         I = chol_S[:ny, :ny]
 
-        m = m + G @ jlinalg.solve_triangular(I, y_diff, lower=True)
+        m = m - G @ jlinalg.solve_triangular(I, c, lower=True)
         return m, cholP
     S = H @ P_or_cholP @ H.T + R_or_cholR
     S_invH = jlinalg.solve(S, H, assume_a='pos')

@@ -214,8 +214,9 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
-# CSV
+# output files
 *.csv
+*.npy
 
 #utilitary script
 ./tests/read_res.py
