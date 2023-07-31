@@ -7,8 +7,9 @@ import pytest
 
 from bayesian_sde_solver.foster_polynomial import get_approx as parabola_approx
 from bayesian_sde_solver.foster_polynomial import get_approx_and_brownian as parabola_approx_and_brownian
+from bayesian_sde_solver.foster_polynomial import get_approx_fine
 
-PARABOLA_APPROXIMATIONS = [parabola_approx, parabola_approx_and_brownian]
+PARABOLA_APPROXIMATIONS = [parabola_approx, parabola_approx_and_brownian, get_approx_fine]
 
 
 @pytest.mark.parametrize("approximation", PARABOLA_APPROXIMATIONS)
@@ -58,5 +59,5 @@ def test_path_integral(approximation):
 
     npt.assert_array_almost_equal(trapz.mean(axis=0), jnp.zeros((dim, )), decimal=2)
     npt.assert_array_almost_equal(
-        jnp.cov(trapz, rowvar=False), h ** 3 / 3 * jnp.identity(dim), decimal=2
+        jnp.cov(trapz, rowvar=False), h ** 3 / 3 * jnp.identity(dim), decimal=3
     )
