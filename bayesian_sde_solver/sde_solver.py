@@ -12,20 +12,19 @@ def sde_solver(
         drift: Callable,
         sigma: Callable,
         x0: ArrayLike,
-        bm: Callable,
+        vf_gen: Callable,
         delta: float,
         N: int,
         ode_int: Callable,
 ) -> Tuple[ArrayLike, ArrayLike, Tuple[ArrayLike]]:
     init = x0
-    get_coeffs, eval_fn = bm()
+    get_coeffs, vf = vf_gen()
 
     def body(x, inp):
         key_k, t_k = inp
         bm_key, sample_key = jax.random.split(key_k, 2)
         coeffs_k = get_coeffs(bm_key, delta)
-        func = lambda t: eval_fn(t, delta, *coeffs_k)
-        vector_field = lambda z, t: drift(z, t + t_k) + sigma(z, t + t_k) @ jax.jacfwd(func)(t)
+        vector_field = vf(drift, sigma, delta, t_k, *coeffs_k)
         next_x = ode_int(sample_key, init=x, vector_field=vector_field, T=delta)
         return next_x, (next_x, *coeffs_k)
 
