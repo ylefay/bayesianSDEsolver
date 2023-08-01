@@ -2,7 +2,7 @@ import jax
 import jax.numpy as jnp
 import numpy.testing as npt
 
-from bayesian_sde_solver.sde_solvers import euler_maruyama
+from bayesian_sde_solver.sde_solvers import euler_maruyama, euler_maruyama_pathwise
 
 
 def test_gbm_moment():
@@ -44,3 +44,29 @@ def test_gbm_moment():
         * (b ** 2 * h + (b ** 2 * h) ** 2 / 2),
         decimal=2,
     )
+
+
+def test_ibm_path():
+    JAX_KEY = jax.random.PRNGKey(1337)
+    key = jax.random.split(JAX_KEY, 1)
+
+    def drift(x, t):
+        return jnp.array([[0.0, 1.0], [0.0, 0.0]]) @ x
+
+    def sigma(x, t):
+        return jnp.array([[0.0], [1.0]])
+
+    x0 = jnp.ones((2,))
+    N = 100
+    dt = 1.0 / N
+    incs = jax.random.normal(key, shape=(N, 1))
+    normalized_incs = incs * jnp.sqrt(dt)
+    linspace, sols = euler_maruyama_pathwise(incs, init=x0, drift=drift, sigma=sigma, h=dt, N=N)
+    B = jnp.cumsum(normalized_incs)
+    B = jnp.insert(B, 0, 0.0)
+    V = x0[1] + B
+    intB = jnp.cumsum(B) * dt
+    U = x0[0] + x0[1] * linspace[1:] + intB[:-1]
+    U = jnp.insert(U, 0, x0[0])
+    npt.assert_array_almost_equal(sols[:, 1], V, decimal=5)
+    npt.assert_array_almost_equal(sols[:, 0], U, decimal=5)
