@@ -5,12 +5,12 @@ import jax.numpy as jnp
 
 from bayesian_sde_solver.foster_polynomial import get_approx_fine as _get_approx_fine
 from bayesian_sde_solver.ito_stratonovich import to_stratonovich
-from bayesian_sde_solver.ode_solvers import ekf0_2, ekf1_2, ekf0
+from bayesian_sde_solver.ode_solvers import ekf0_2, ekf1_2, ekf0, ekf1
 from bayesian_sde_solver.sde_solver import sde_solver
 from bayesian_sde_solver.sde_solvers import euler_maruyama_pathwise
 
 JAX_KEY = jax.random.PRNGKey(1337)
-solver = ekf0
+solver = ekf1
 
 gamma = 1.0
 sig = 1.0
@@ -28,15 +28,6 @@ def sigma(x, t):
     return jnp.array([[0.0], [sig]])
 
 
-def drift(x, t):
-    return 0 * x
-
-
-def sigma(x, t):
-    return jnp.array([[1.0]])
-
-
-x0 = jnp.zeros((1,))
 x0 = jnp.ones((2,))
 
 
@@ -59,7 +50,7 @@ if solver in [ekf0_2, ekf1_2]:
 @partial(jnp.vectorize, signature="()->(d,n,s),(d,n,s),(d,k,l)", excluded=(1, 2, 3,))
 @partial(jax.jit, static_argnums=(1, 2, 3,))
 def experiment(delta, N, M, fine):
-    keys = jax.random.split(JAX_KEY, 10_000)
+    keys = jax.random.split(JAX_KEY, 100_00)
 
     def wrapped(_key, init, vector_field, T):
         return solver(None, init=init, vector_field=vector_field, h=T / M, N=M)
@@ -83,12 +74,11 @@ def experiment(delta, N, M, fine):
     if solver in [ekf0_2, ekf1_2]:
         sols = sols[0]
     incs = coeffs[2]
+    dt = delta/fine
     shape_incs = incs.shape
     assert fine == shape_incs[2]
-    dt = 1 / (shape_incs[1] * shape_incs[2])
     incs = incs.reshape((shape_incs[0], fine * shape_incs[1], shape_incs[3]))
-    incs *= jnp.sqrt(1 / dt)
-
+    incs *= jnp.sqrt(1/dt)
     @jax.vmap
     def wrapped_euler_maruyama_piecewise(inc):
         return euler_maruyama_pathwise(inc, init=x0, drift=drift, sigma=sigma, h=dt, N=fine * shape_incs[1])
@@ -97,19 +87,27 @@ def experiment(delta, N, M, fine):
     sampled_linspaces2 = linspaces2[:, ::fine, ...]
     sampled_sols2 = sols2[:, ::fine, ...]
     return sols, sampled_sols2, incs
-
+#M = 1, N = 1, fineN = 1/d**4 => order 2 error for fine euler, h = delta and hence delta^2 error for local EKF0 => local convergence of order 2
+#M = 1, fineN = 1/d**2 => order 1 error for fine euler, h = delta, and hence delta error for global EKF0 => global convergence of order 1
+#M = 1, N = 1, fineN = 1/d**2 => order 2 local error for fine euler, h = delta and hence delta^2 error for local EKF0 => local convergence of order 2
 
 deltas = jnp.array(
-    [1 / 100, 1 / 90, 1 / 80, 1 / 70, 1 / 60, 1 / 50, 1 / 40, 1 / 30, 1 / 20, 1 / 10])  #
+    [1 / 100, 1 / 90, 1 / 80, 1 / 70, 1 / 60, 1 / 50, 1 / 40, 1 / 30, 1 / 20, 1 / 10])
+
 Ndeltas = jnp.ceil(1 / deltas)
+Mdeltas = jnp.ones((len(deltas),)) * 1_00
 Mdeltas = jnp.ones((len(deltas),))
 Mdeltas = jnp.ceil(1 / jnp.sqrt(deltas))
-Mdeltas = jnp.ones((len(deltas),)) * 1_000
-fineDeltas = Mdeltas
+
+fineDeltas = jnp.ceil(1 / deltas**2)
+Mdeltas = jnp.ones((len(deltas),))
+Ndeltas = jnp.ones((len(deltas), ))
+
 folder = "./"
 solver_name = "ekf0"
-prefix = "IBM"
-for delta, n in zip(deltas, range(len(Ndeltas))):
+prefix = "IBM"+solver_name
+for n in range(len(Ndeltas)):
+    delta = deltas[n]
     N = Ndeltas[n]
     M = Mdeltas[n]
     fine = fineDeltas[n]
