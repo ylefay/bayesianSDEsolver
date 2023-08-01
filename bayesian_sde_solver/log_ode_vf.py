@@ -7,15 +7,17 @@ from bayesian_sde_solver.foster_polynomial import get_approx
 
 
 @partial(jax.jit, static_argnums=(1, 2))
-def lie(var, u, v):
+def lie(var, U, V):
     """
     Vector field Lie bracket.
     :param var: The Lie bracket will be evaluated at x = var.
-    :param u: Numerical function.
-    :param v: Numerical function.
+    :param U: Numerical function.
+    :param V: Numerical function.
     :return: The vector field Lie bracket [u, v] applied to Id, at x = var, [u, v](Id)(var).
     """
-    return u(var) * jax.grad(v)(var) - v(var) * jax.grad(u)(var)
+    jacU = jax.jacfwd(U)(var)
+    jacV = jax.jacfwd(V)(var)
+    return jacU @ V(var) - jacV @ U(var)
 
 
 def _vf_gen(bm=get_approx()):
@@ -30,4 +32,5 @@ def _vf_gen(bm=get_approx()):
                                     + second_lie_bracket(t)(z) @ (0.6 @ H @ H.T + 1 / 30 * delta * jnp.eye(dW.shape[0]))
 
         return vector_field
+
     return get_coeffs, vf
