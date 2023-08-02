@@ -174,3 +174,4 @@ def test_all_agree():
                             jnp.zeros((1,)), decimal=4)
     npt.assert_almost_equal(jnp.sum(jnp.abs(jnp.array([res[i][1] - res[0][1] for i in range(len(SOLVERS))])), axis=0),
                             jnp.zeros((1,)), decimal=4)
+
