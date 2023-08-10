@@ -1,9 +1,14 @@
 import jax.numpy as jnp
 from numpy.typing import ArrayLike
+from typing import Tuple
 
 
 def interlace(x: ArrayLike, y: ArrayLike) -> ArrayLike:
     return jnp.vstack((x, y)).reshape((-1,), order='F')
+
+
+def multiple_interlace(arrays: Tuple[ArrayLike]) -> ArrayLike:
+    return jnp.vstack(arrays).reshape((-1,), order='F')
 
 
 def interlace_matrix(v: ArrayLike, w: ArrayLike, x: ArrayLike, y: ArrayLike) -> ArrayLike:

@@ -28,17 +28,6 @@ def sigma(x, t):
     return jnp.array([[0.0], [sig]])
 
 
-x0 = jnp.ones((1,))
-
-
-def drift(x, t):
-    return x
-
-
-def sigma(x, t):
-    return jnp.array([[1.0]])
-
-
 x0 = jnp.ones((2,))
 
 
@@ -48,6 +37,17 @@ def drift(x, t):
 
 def sigma(x, t):
     return jnp.array([[0.0], [1.0]])
+
+
+x0 = jnp.ones((1,))
+
+
+def drift(x, t):
+    return x * (t**2+1)
+
+
+def sigma(x, t):
+    return jnp.array([[1.0]])*(t+1)
 
 
 drift_s, sigma_s = to_stratonovich(drift, sigma)
@@ -105,9 +105,9 @@ def experiment(delta, N, M, fine):
 # M = 1, fineN = 1/d**2 => order 1 error for fine euler, h = delta, and hence delta error for global EKF0 => global convergence of order 1
 # M = 1, N = 1, fineN = 1/d**2 => order 2 local error for fine euler, h = delta and hence delta^2 error for local EKF0 => local convergence of order 2
 
-Ns = jnp.array([4, 8, 16, 32])
-deltas = jnp.array([0.25, 0.125, 0.0625, 0.03125])
-fineDeltas = Ns ** 3
+Ns = jnp.array([4, 8, 16, 32, 64, 128])
+deltas = jnp.array([0.25, 0.125, 0.0625, 0.03125, 0.015625, 0.0078125])
+fineDeltas = Ns ** 2
 Mdeltas = jnp.ones((len(deltas),)) * Ns ** 0
 Ndeltas = Ns
 
