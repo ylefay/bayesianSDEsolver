@@ -16,7 +16,7 @@ def solver(key, init, vector_field, h, N, sqrt=True):
         interlace(init, vector_field(init, 0.0)),
         jnp.zeros((2 * dim, 2 * dim))
     )
-    filtered = _solver(init, vector_field, h, N, sqrt)
+    filtered = _solver(init, vector_field, h, N, sqrt, EKF0=False)
     m, P = filtered
     if key is not None:
         if not sqrt:

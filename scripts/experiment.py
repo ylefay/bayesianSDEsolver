@@ -5,7 +5,7 @@ from bayesian_sde_solver.foster_polynomial import get_approx
 
 JAX_KEY = jax.random.PRNGKey(1337)
 
-M, N = 6, 100
+M, N = 4, 1
 h = 1.0
 K = 1000
 bm_key, exp_key = jax.random.split(JAX_KEY, 2)
@@ -14,6 +14,8 @@ bms = jax.random.normal(bm_key, shape=(M * K - 1, 1, 1))
 bms = jnp.insert(bms, 0, 0, axis=0)
 bms = bms * h ** 0.5 / K ** 0.5
 bms = jnp.cumsum(bms, axis=0)
+
+#given brownian increments, generate parabolas
 
 @jax.jit
 def path(bms_inc):

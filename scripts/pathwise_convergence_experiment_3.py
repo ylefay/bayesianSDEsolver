@@ -5,12 +5,11 @@ import jax.numpy as jnp
 
 from bayesian_sde_solver.foster_polynomial import get_approx_fine as _get_approx_fine
 from bayesian_sde_solver.ito_stratonovich import to_stratonovich
-from bayesian_sde_solver.ode_solvers import ekf0_2, ekf1_2, ekf0, ekf1
-from bayesian_sde_solver.sde_solver import sde_solver
 from bayesian_sde_solver.sde_solvers import euler_maruyama_pathwise
+from bayesian_sde_solver.ssm_parabola import ekf1_marginal_parabola
+from bayesian_sde_solver.ssm_parabola import ssm_parabola_ode_solver
 
 JAX_KEY = jax.random.PRNGKey(1337)
-solver = ekf0
 
 gamma = 1.0
 sig = 1.0
@@ -18,13 +17,7 @@ eps = 1.0
 alpha = 1.0
 s = 1.0
 
-
-
-
-
 x0 = jnp.ones((2,))
-
-
 
 
 def drift(x, t):
@@ -47,19 +40,19 @@ def sigma(x, t):
 def drift(x, t):
     def pi(x):
         return jnp.exp(-x @ x.T / 2)
+
     return jax.jacfwd(lambda z: jnp.log(pi(z)))(x)
 
-def sigma(x,t):
+
+def sigma(x, t):
     return jnp.array([[jnp.sqrt(2)]])
+
 
 x0 = jnp.ones((1,))
 
 drift_s, sigma_s = to_stratonovich(drift, sigma)
 
 init = x0
-if solver in [ekf0_2, ekf1_2]:
-    P0 = jnp.zeros((x0.shape[0], x0.shape[0]))
-    init = (x0, P0)
 
 
 @partial(jnp.vectorize, signature="()->(d,n,s),(d,n,s),(d,k,l)", excluded=(1, 2, 3,))
@@ -67,27 +60,26 @@ if solver in [ekf0_2, ekf1_2]:
 def experiment(delta, N, M, fine):
     keys = jax.random.split(JAX_KEY, 1_0000)
 
-    def wrapped(_key, init, vector_field, T):
-        return solver(None, init=init, vector_field=vector_field, h=T / M, N=M)
+    get_approx_fine = partial(_get_approx_fine, N=N)
+
+    def solver(key, init, delta, drift, diffusion, T):
+        return ekf1_marginal_parabola(key, init, delta, drift, diffusion, h=T / M, N=M, sqrt=True)
 
     get_approx_fine = partial(_get_approx_fine, N=fine)
 
     @jax.vmap
     def wrapped_filter_parabola(key_op):
-        return sde_solver(
-            key=key_op,
-            drift=drift_s,
-            sigma=sigma_s,
-            x0=init,
-            bm=get_approx_fine,
-            delta=delta,
-            N=N,
-            ode_int=wrapped,
-        )
+        return ssm_parabola_ode_solver(key=key_op,
+                                       drift=drift,
+                                       sigma=sigma,
+                                       x0=x0,
+                                       bm=get_approx_fine,
+                                       delta=delta,
+                                       N=N,
+                                       solver=solver,
+                                       )
 
     linspaces, sols, *coeffs = wrapped_filter_parabola(keys)
-    if solver in [ekf0_2, ekf1_2]:
-        sols = sols[0]
     incs = coeffs[2]
     dt = delta / fine
     shape_incs = incs.shape
@@ -112,7 +104,7 @@ Mdeltas = jnp.ones((len(deltas),)) * Ns ** 0
 Ndeltas = Ns
 
 folder = "./"
-solver_name = "ekf0"
+solver_name = "ssm_parabola"
 prefix = "langevin" + solver_name
 for n in range(len(Ndeltas)):
     delta = deltas[n]

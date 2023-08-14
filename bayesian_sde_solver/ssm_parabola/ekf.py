@@ -21,7 +21,7 @@ def _solver(init, drift, diffusion, delta, h, N, sqrt=True, EKF0=False):
         H = jnp.array([[1, 0, 0, 0],
                        [0, 0, 0, 0],
                        [0, 0, 1 / delta, 0],
-                       [0, 0, 0, jnp.sqrt(6) * (2 * t / delta - 1)]])
+                       [0, 0, 0, jnp.sqrt(6) * (2 * t / delta - 1) / delta]])
         H = jnp.kron(jnp.eye(dim), H)
         return H
 
@@ -33,7 +33,8 @@ def _solver(init, drift, diffusion, delta, h, N, sqrt=True, EKF0=False):
     if EKF0:
         def observation_function(x, t):
             # IVP observation function
-            return x[1::4] - jax.lax.stop_gradient(extended_vector_field(x, t))
+            z = x.at[::4].set(jax.lax.stop_gradient(x[::4]))
+            return x[1::4] - extended_vector_field(z, t)
     else:
         def observation_function(x, t):
             # IVP observation function
@@ -59,8 +60,6 @@ def _solver(init, drift, diffusion, delta, h, N, sqrt=True, EKF0=False):
 
     transition_matrix = jnp.kron(jnp.eye(dim), one_block_transition_matrix)
     transition_covariance = jnp.kron(jnp.eye(dim), one_block_transition_covariance)
-
-
 
     filtered = ekf(init=init, observation_function=observation_function, A=transition_matrix,
                    Q_or_cholQ=transition_covariance, R_or_cholR=noise, params=(ts,), sqrt=sqrt)
