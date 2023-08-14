@@ -3,19 +3,27 @@ import jax.numpy as jnp
 
 from bayesian_sde_solver.ode_solvers.probnum import IOUP_transition_function
 from bayesian_sde_solver.ode_solvers.probnum import ekf
-
+from bayesian_sde_solver.ode_solvers.probnum import multiple_interlace
 
 def _solver(init, drift, diffusion, delta, h, N, sqrt=True, EKF0=False):
     """
     EKF{0, 1} implementation for the Parabola ODE method with
-    the Brownian increment and the Levy's area as part of the observations.
+    the polynomial coefficients as part of the state.
     IOUBM prior.
     One derivative of the vector field is used.
     No observation noise.
     """
+
     ts = jnp.linspace(h, N * h, N)
-    dim = int(init[0].shape[0] / 4)
+    dim = int(init[0].shape[0])
     noise = jnp.zeros((dim, dim))
+
+    diag_var_vector_field = 4 * delta * diffusion(init, 0.0)@diffusion(init, 0.0).T
+    cov_vector_field_increment = ...
+    init = (
+        multiple_interlace((init, drift(init, 0.0), jnp.zeros((dim, )), jnp.zeros((dim, )))),
+
+    )
 
     def pol(t):
         H = jnp.array([[1, 0, 0, 0],

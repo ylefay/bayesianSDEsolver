@@ -119,10 +119,6 @@ for n in range(len(Ndeltas)):
     N = Ndeltas[n]
     M = Mdeltas[n]
     fine = fineDeltas[n]
-    print(delta)
-    print(N)
-    print(M)
-    print(fine)
     s1, s2, incs = experiment(delta, int(N), int(M), int(fine))
     jnp.save(f'{folder}/{prefix}_pathwise_sols_{N}_{M}', s1)
     jnp.save(f'{folder}/{prefix}_pathwise_sols2_{N}_{fine}', s2)

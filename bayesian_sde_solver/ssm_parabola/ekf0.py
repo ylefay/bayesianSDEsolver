@@ -18,10 +18,7 @@ def solver(key, init, delta, drift, diffusion, h, N, sqrt=True):
                 brownian_increments_init - jnp.sqrt(6)*second_coeff_pol) / delta
     dim = x_init.shape[0]
     # Zero initial variance
-    init = (
-        multiple_interlace((x_init, vector_field_init, brownian_increments_init, second_coeff_pol)),  # ...
-        jnp.zeros((4 * dim, 4 * dim))
-    )
+
 
     filtered = _solver(init, drift, diffusion, delta, h, N, sqrt, EKF0=True)
     m, P = filtered
