@@ -1,5 +1,6 @@
 import jax
 import jax.numpy as jnp
+import jax.scipy.linalg as linalg
 
 from bayesian_sde_solver.ode_solvers.ekf import _solver
 from bayesian_sde_solver.ode_solvers.probnum import interlace
@@ -20,10 +21,10 @@ def solver(key, init, vector_field, h, N, sqrt=True):
     m, P = filtered
     if key is not None:
         if not sqrt:
-            cholP = jnp.linalg.cholesky(P)
+            sqrtP = jnp.real(linalg.sqrtm(P))
         else:
-            cholP = P
-        last_sample = m + cholP @ jax.random.multivariate_normal(key, jnp.zeros((2 * dim,)), jnp.eye(2 * dim))
+            sqrtP = P
+        last_sample = m + sqrtP @ jax.random.multivariate_normal(key, jnp.zeros((2 * dim,)), jnp.eye(2 * dim))
         return jnp.vstack(last_sample[::2]).reshape((dim,))
     last_value = jnp.vstack(m[::2]).reshape((dim,))
     return last_value  # return only the mean

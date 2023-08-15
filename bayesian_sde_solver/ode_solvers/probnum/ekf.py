@@ -44,6 +44,7 @@ def update(x, c, H, R_or_cholR, sqrt=False):
 
 
 def ekf(init, observation_function, A, Q_or_cholQ, R_or_cholR, params=None, sqrt=False):
+    # sqrt : lower sqrt only, such as LDL^T or Cholesky
     def body(x, param):
         x = predict(x, A, Q_or_cholQ, sqrt)
         m, _ = x

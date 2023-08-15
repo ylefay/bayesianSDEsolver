@@ -23,10 +23,3 @@ def interlace_matrix(v: ArrayLike, w: ArrayLike, x: ArrayLike, y: ArrayLike) -> 
     _var.at[1::2, ::2].set(var.at[dim:, :dim].get())
     _var.at[::2, 1::2].set(var.at[:dim, dim:].get())
     return _var
-
-def multiple_interlace_matrix(arrays: Tuple[ArrayLike]) -> ArrayLike:
-    dim = arrays[0].shape[0]
-    n = int(sqrt(len(arrays)))
-    var = jnp.block([[arrays[i*n+j] for j in range(n)] for i in range(n)])
-    _var = var.copy()
-    raise NotImplementedError

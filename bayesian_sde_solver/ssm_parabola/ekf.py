@@ -1,9 +1,11 @@
 import jax
 import jax.numpy as jnp
+import jax.scipy.linalg as linalg
 
 from bayesian_sde_solver.ode_solvers.probnum import IOUP_transition_function
 from bayesian_sde_solver.ode_solvers.probnum import ekf
 from bayesian_sde_solver.ode_solvers.probnum import multiple_interlace
+
 
 def _solver(init, drift, diffusion, delta, h, N, sqrt=True, EKF0=False):
     """
@@ -15,15 +17,24 @@ def _solver(init, drift, diffusion, delta, h, N, sqrt=True, EKF0=False):
     """
 
     ts = jnp.linspace(h, N * h, N)
-    dim = int(init[0].shape[0])
+    dim = int(init.shape[0])
+    dim_brownian = diffusion(init, 0.0).shape[1]
+    assert dim == dim_brownian
     noise = jnp.zeros((dim, dim))
 
-    diag_var_vector_field = 4 * delta * diffusion(init, 0.0)@diffusion(init, 0.0).T
-    cov_vector_field_increment = ...
-    init = (
-        multiple_interlace((init, drift(init, 0.0), jnp.zeros((dim, )), jnp.zeros((dim, )))),
+    Evfvf = 4 / delta * diffusion(init, 0.0) @ diffusion(init, 0.0).T
+    Evfw = diffusion(init, 0.0)
+    Evfi = - jnp.sqrt(6) / 2 * diffusion(init, 0.0)
 
-    )
+    mean = multiple_interlace((init, drift(init, 0.0), jnp.zeros((dim,)), jnp.zeros((dim,))))
+
+    def block(i, j):
+        return jnp.array([[0, 0, 0, 0],
+                          [0, Evfvf[i, j], Evfw[i, j], Evfi[i, j]],
+                          [0, Evfw[i, j], delta if i == j else 0, 0],
+                          [0, Evfi[i, j], 0, delta / 2 if i == j else 0]])
+
+    var = jnp.block([[block(i, j) for i in range(dim)] for j in range(dim)])
 
     def pol(t):
         H = jnp.array([[1, 0, 0, 0],
@@ -56,6 +67,8 @@ def _solver(init, drift, diffusion, delta, h, N, sqrt=True, EKF0=False):
 
     if sqrt:
         one_block_transition_covariance = jnp.linalg.cholesky(one_block_transition_covariance)
+        var = jnp.real(linalg.sqrtm(var)) #should be LDL.T, Cholesky
+    init = (mean, var)
 
     one_block_transition_matrix = jnp.block(
         [[one_block_transition_matrix, jnp.zeros((2, 2))],
