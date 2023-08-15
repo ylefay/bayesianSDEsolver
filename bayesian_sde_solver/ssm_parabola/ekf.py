@@ -31,10 +31,10 @@ def _solver(init, drift, diffusion, delta, h, N, sqrt=True, EKF0=False):
     def block(i, j):
         return jnp.array([[0, 0, 0, 0],
                           [0, Evfvf[i, j], Evfw[i, j], Evfi[i, j]],
-                          [0, Evfw[i, j], delta if i == j else 0, 0],
-                          [0, Evfi[i, j], 0, delta / 2 if i == j else 0]])
+                          [0, Evfw[j, i], delta if i == j else 0, 0],
+                          [0, Evfi[j, i], 0, delta / 2 if i == j else 0]])
 
-    var = jnp.block([[block(i, j) for i in range(dim)] for j in range(dim)])
+    var = jnp.block([[block(i, j) for j in range(dim)] for i in range(dim)])
 
     def pol(t):
         H = jnp.array([[1, 0, 0, 0],
