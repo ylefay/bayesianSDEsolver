@@ -57,7 +57,7 @@ def test_path_integral(approximation):
     ys = integrand_mean(linspace, coeffs)
     trapz = jnp.trapz(ys, linspace, axis=0)
 
-    npt.assert_array_almost_equal(trapz.mean(axis=0), jnp.zeros((dim, )), decimal=2)
+    npt.assert_array_almost_equal(trapz.mean(axis=0), jnp.zeros((dim,)), decimal=2)
     npt.assert_array_almost_equal(
         jnp.cov(trapz, rowvar=False), h ** 3 / 3 * jnp.identity(dim), decimal=3
     )

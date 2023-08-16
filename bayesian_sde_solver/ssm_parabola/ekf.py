@@ -4,16 +4,16 @@ import jax.scipy.linalg as linalg
 
 from bayesian_sde_solver.ode_solvers.probnum import IOUP_transition_function
 from bayesian_sde_solver.ode_solvers.probnum import ekf
-from bayesian_sde_solver.ode_solvers.probnum import multiple_interlace
+from bayesian_sde_solver.ode_solvers.probnum import interlace
 
 
 def _solver(init, drift, diffusion, delta, h, N, sqrt=True, EKF0=False):
     """
     EKF{0, 1} implementation for the Parabola ODE method with
     the polynomial coefficients as part of the state.
-    IOUBM prior.
-    One derivative of the vector field is used.
-    No observation noise.
+    IOUP prior.
+    One derivative of the vector field is used, q = 1.
+    No observation noise, R = 0.
     """
 
     ts = jnp.linspace(h, N * h, N)
@@ -26,7 +26,7 @@ def _solver(init, drift, diffusion, delta, h, N, sqrt=True, EKF0=False):
     Evfw = diffusion(init, 0.0)
     Evfi = - jnp.sqrt(6) / 2 * diffusion(init, 0.0)
 
-    mean = multiple_interlace((init, drift(init, 0.0), jnp.zeros((dim,)), jnp.zeros((dim,))))
+    mean = interlace((init, drift(init, 0.0), jnp.zeros((dim,)), jnp.zeros((dim,))))
 
     def block(i, j):
         return jnp.array([[0, 0, 0, 0],
@@ -67,11 +67,11 @@ def _solver(init, drift, diffusion, delta, h, N, sqrt=True, EKF0=False):
 
     if sqrt:
         one_block_transition_covariance = jnp.linalg.cholesky(one_block_transition_covariance)
-        var = jnp.real(linalg.sqrtm(var)) #should be LDL.T, Cholesky
+        var = jnp.real(linalg.sqrtm(var))  # should be LDL.T, Cholesky
     init = (mean, var)
 
     one_block_transition_matrix = jnp.block(
-        [[one_block_transition_matrix, jnp.zeros((2, 2))],
+         [[one_block_transition_matrix, jnp.zeros((2, 2))],
          [jnp.zeros((2, 2)), jnp.eye(2)]]
     )
     one_block_transition_covariance = jnp.block(
@@ -83,6 +83,6 @@ def _solver(init, drift, diffusion, delta, h, N, sqrt=True, EKF0=False):
     transition_covariance = jnp.kron(jnp.eye(dim), one_block_transition_covariance)
 
     filtered = ekf(init=init, observation_function=observation_function, A=transition_matrix,
-                   Q_or_cholQ=transition_covariance, R_or_cholR=noise, params=(ts,), sqrt=sqrt)
+                   Q_or_cholQ=transition_covariance, R_or_cholR=noise, params=(ts,), lower_sqrt=sqrt)
 
     return filtered

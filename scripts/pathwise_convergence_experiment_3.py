@@ -73,7 +73,6 @@ def experiment(delta, N, M, fine):
                                        drift=drift,
                                        sigma=sigma,
                                        x0=x0,
-                                       bm=get_approx_fine,
                                        delta=delta,
                                        N=N,
                                        solver=solver,

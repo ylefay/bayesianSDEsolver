@@ -17,7 +17,7 @@ def solver(_, init, vector_field, h, N):
     P_10 = H @ P_00
     var = interlace_matrix(P_00, P_01, P_10, P_11)
     init = (
-        interlace(m_0, vector_field(m_0, 0.0)),
+        interlace((m_0, vector_field(m_0, 0.0))),
         var
     )
     filtered = _solver(init, vector_field, h, N, sqrt=False, EKF0=True)

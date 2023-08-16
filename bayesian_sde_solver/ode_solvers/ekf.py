@@ -8,9 +8,9 @@ from bayesian_sde_solver.ode_solvers.probnum import ekf
 def _solver(init, vector_field, h, N, sqrt=False, EKF0=False):
     """
     EKF{0, 1} implementation.
-    IOUBM prior.
-    One derivative of the vector field is used.
-    No observation noise.
+    IOUP prior.
+    One derivative of the vector field is used, q = 1.
+    No observation noise, R = 0.
     """
     ts = jnp.linspace(h, N * h, N)
     dim = int(init[0].shape[0] / 2)
@@ -35,6 +35,6 @@ def _solver(init, vector_field, h, N, sqrt=False, EKF0=False):
         transition_covariance = jnp.linalg.cholesky(transition_covariance)
 
     filtered = ekf(init=init, observation_function=observation_function, A=transition_matrix,
-                   Q_or_cholQ=transition_covariance, R_or_cholR=noise, params=(ts,), sqrt=sqrt)
+                   Q_or_cholQ=transition_covariance, R_or_cholR=noise, params=(ts,), lower_sqrt=sqrt)
 
     return filtered

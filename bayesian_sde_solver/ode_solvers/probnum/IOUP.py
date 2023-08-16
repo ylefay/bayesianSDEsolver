@@ -1,14 +1,15 @@
 from math import factorial
-from typing import Callable, Tuple
+from typing import Tuple
+from numpy.typing import ArrayLike
 
 import jax.numpy as jnp
 import jax.scipy.linalg as linalg
 
 
-def transition_function(theta: float, sigma: float, q: int, dt: float, dim: int) -> Tuple[
-    Callable, jnp.ndarray, jnp.ndarray, jnp.ndarray]:
+def transition_function(theta: float, sigma: float, q: int, dt: float, dim: int) -> Tuple[ArrayLike, ArrayLike,
+                                                                                          ArrayLike]:
     """
-    Closed formula for IOUP transition function.
+    Closed formula for Integrated Ornstein-Uhlenbeck transition function.
     """
     F = jnp.block(
         [[jnp.zeros(q).reshape((q, 1)), jnp.diag(jnp.ones(q))],

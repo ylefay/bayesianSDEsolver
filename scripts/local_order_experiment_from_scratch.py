@@ -18,7 +18,7 @@ delta = 0.1
 
 
 def wrapped(_key, init, vector_field, T, N=1):
-    return solver(None, init=init, vector_field=vector_field, h=T/N, N=N)
+    return solver(None, init=init, vector_field=vector_field, h=T / N, N=N)
 
 
 # Integrated Brownian motion
@@ -64,6 +64,7 @@ def customized_solver(h, M, coeffs):
 def experiment(delta, N):
     keys = jax.random.split(JAX_KEY, 1000)
     fine_delta = delta / fine_N
+
     @jax.vmap
     def local_step(key_OP):
         key = jax.random.split(key_OP, 1)[0]
@@ -72,19 +73,20 @@ def experiment(delta, N):
 
         fine_incs = coeffs[2]  # those are the Nfine increments
         fine_incs = fine_incs.reshape((fine_N, 1))
-        BM = jnp.cumsum(fine_incs, axis=0) # computing the corresponding BM
+        BM = jnp.cumsum(fine_incs, axis=0)  # computing the corresponding BM
 
         fine_incs *= jnp.sqrt(1 / fine_delta)  # normalizing them to var. 1, needed for euler_maruyama_pathwise
         _, X_DELTA_EULER = euler_maruyama_pathwise(fine_incs, init=init_x0, drift=drift, sigma=sigma, h=fine_delta,
                                                    N=fine_N)  # solving using EM scheme this path
         X_DELTA_EULER = X_DELTA_EULER[-1]  # taking last value, corresponding to X^{eu}_{delta} with h = fine_delta
 
-
         # in case we know the closed formula:
         def closed_formula(b, t):
-            return init_x0 * jnp.exp(t/2+b)
+            return init_x0 * jnp.exp(t / 2 + b)
+
         def closed_formula(b, t):
             return jnp.exp(t) * (init_x0 + b)
+
         # X_DELTA_FINE_CLOSED_FORMULA = closed_formula(BM[-1], delta)
 
         # solving using a chosen ODE solver (see def of customized_solver), the Nfine ODE => less than order 1.0
@@ -99,12 +101,12 @@ def experiment(delta, N):
 
         # in case we know the ode closed formula:
         def closed_formula_ode(w, i, t):
-            return jnp.exp(t) * (init_x0 + w/delta * t + t/delta * (t/delta -1) * jnp.sqrt(6) * i)
+            return jnp.exp(t) * (init_x0 + w / delta * t + t / delta * (t / delta - 1) * jnp.sqrt(6) * i)
+
         def closed_formula_ode(w, i, t):
             return jnp.exp(t / 2 + w / delta * t + t / delta * (t / delta - 1) * jnp.sqrt(6) * i)
 
         # X_DELTA_FINE_CLOSED_ODE_FORMULA = closed_formula_ode(coeffs[0], coeffs[1], delta)
-
 
         # solving the greater parabola ODE using euler with chosen number of steps => less than order 1.0
         # X_DELTA_EULER_PARABOLAS = euler(init_x0, vector_field, h=delta/10, N=10) #0.5
@@ -116,4 +118,4 @@ def experiment(delta, N):
 
 deltas = [0.1, 0.05, 0.025, 0.01]
 for delta in deltas:
-    jnp.save(f'experiment_{delta}', experiment(delta, int(1/delta**0)))
+    jnp.save(f'experiment_{delta}', experiment(delta, int(1 / delta ** 0)))

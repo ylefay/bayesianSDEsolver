@@ -3,13 +3,23 @@ import jax.numpy as jnp
 
 
 def solver(key, init, drift, sigma, h, N):
-    # squared diagonal diffusion matrix
+    """
+    1.5 strong order Itô-Taylor scheme.
+    See Kloeden, Patten 1994 10.4 and Samson, Ditlevsen: https://arxiv.org/abs/1707.04235.
+    Support only squared diagonal diffusion matrix.
+    """
 
     dim = drift(init).shape[0]
     assert dim == sigma(init).shape[1]
-    partialxdrift = lambda x: jax.jacfwd(drift)(x)
-    diagSigma = lambda x: jnp.diag(sigma(x))
-    partialxsigma = lambda x: jax.jacfwd(diagSigma)(x)
+
+    def partialxdrift(x):
+        return jax.jacfwd(drift)(x)
+
+    def diagSigma(x):
+        return jnp.diag(sigma(x))
+
+    def partialxsigma(x):
+        return jax.jacfwd(diagSigma)(x)
 
     def laplaceweighted(sig, f, x):
         # special case for diagonal diffusion matrix
@@ -17,8 +27,11 @@ def solver(key, init, drift, sigma, h, N):
         diagsigma = jnp.diag(sig(x) @ sig(x).T)
         return jax.vmap(lambda diagh: jnp.dot(diagsigma, diagh.T))(diagH)
 
-    laplacesigma = lambda x: laplaceweighted(sigma, diagSigma, x)
-    laplacedrift = lambda x: laplaceweighted(sigma, drift, x)
+    def laplacesigma(x):
+        return laplaceweighted(sigma, diagSigma, x)
+
+    def laplacedrift(x):
+        return laplaceweighted(sigma, drift, x)
 
     def body(x, key):
         key_k = key

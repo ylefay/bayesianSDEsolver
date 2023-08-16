@@ -19,8 +19,8 @@ def test_agree_predict_sqrt():
     m = random.uniform(key, (nx,))
     x = (m, P)
     cholx = (m, jnp.linalg.cholesky(P))
-    p_sqrt_m, _p_cholP = predict(cholx, A, cholQ, sqrt=True)
-    p_m, p_P = predict(x, A, Q, sqrt=False)
+    p_sqrt_m, _p_cholP = predict(cholx, A, cholQ, lower_sqrt=True)
+    p_m, p_P = predict(x, A, Q, lower_sqrt=False)
     npt.assert_allclose(p_sqrt_m, p_m, rtol=10e-5)
     npt.assert_allclose(_p_cholP @ _p_cholP.T, p_P, rtol=10e-5)
 
@@ -38,7 +38,7 @@ def test_agree_update_sqrt():
     R = random.uniform(key, (ny, 10 * ny))
     R = R @ R.T
     cholR = jnp.linalg.cholesky(R)
-    u_sqrt_m, _u_cholP = update(cholx, c, H, cholR, sqrt=True)
-    u_m, u_P = update(x, c, H, R, sqrt=False)
+    u_sqrt_m, _u_cholP = update(cholx, c, H, cholR, lower_sqrt=True)
+    u_m, u_P = update(x, c, H, R, lower_sqrt=False)
     npt.assert_allclose(_u_cholP @ _u_cholP.T, u_P, rtol=10e-5)
     npt.assert_allclose(u_sqrt_m, u_m, rtol=10e-5)

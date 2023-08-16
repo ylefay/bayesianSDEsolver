@@ -5,7 +5,9 @@ import jax.numpy as jnp
 
 
 def get_approx(dim=1):
-    # this gives the parabola approximation of a Brownian motion over a time interval of length dt.
+    """
+    This gives a sampled parabola approximation over a time interval of length dt.
+    """
 
     @partial(jnp.vectorize, signature="(d),()->(e),(e)")
     def parabolas(key, dt):
@@ -25,7 +27,9 @@ def get_approx(dim=1):
 
 
 def get_approx_and_brownian(dim=1, N=100):
-    # this gives the parabola approximation of a Brownian motion, as well as the corresponding Brownian motion.
+    """
+    This gives the parabola approximation of a fine sampled Brownian motion, as well as the corresponding Brownian motion.
+    """
 
     @partial(jnp.vectorize, signature="(d),()->(e),(e),(f,s)")
     def parabolas(key, dt):
@@ -54,8 +58,10 @@ def get_approx_and_brownian(dim=1, N=100):
 
 
 def get_approx_fine(dim=1, N=100):
-    # this gives the parabola approximation of a Brownian motion constructed using finer parabolas
-    # It can be used to compute pathwise errors
+    """
+    This gives the parabola approximation constructed using finer sampled parabolas.
+    This method is used by Foster to compute pathwise errors.
+    """
     _parabolas, _eval_parabola = get_approx(dim=dim)
 
     @partial(jnp.vectorize, signature="(d),()->(e),(e),(f,s),(f,s)")
@@ -63,11 +69,11 @@ def get_approx_fine(dim=1, N=100):
         fine_dt = dt / N
         keys = jax.random.split(key, N)
         fine_eps_0s, fine_eps_1s = _parabolas(keys, fine_dt)
-        fine_eps_1s *= 1/jnp.sqrt(6)
+        fine_eps_1s *= 1 / jnp.sqrt(6)
 
-        """
-        See https://github.com/james-m-foster/igbm-simulation/blob/master/igbm.cpp, l209-230
-        """
+
+        # See https://github.com/james-m-foster/igbm-simulation/blob/master/igbm.cpp, l209-230
+
         def update_eps(carry, inps):
             eps_0, eps_1 = carry
             fine_eps_0, fine_eps_1 = inps
@@ -85,5 +91,3 @@ def get_approx_fine(dim=1, N=100):
         return _eval_parabola(t, dt, a, b)
 
     return parabolas, eval_parabola
-
-

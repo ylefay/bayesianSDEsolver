@@ -9,12 +9,11 @@ from bayesian_sde_solver.ode_solvers.probnum import interlace
 def solver(key, init, vector_field, h, N, sqrt=True):
     """
     Wrapper for EKF1 with new prior at each step.
-    Using sqrt.
     """
     dim = init.shape[0]
     # Zero initial variance
     init = (
-        interlace(init, vector_field(init, 0.0)),
+        interlace((init, vector_field(init, 0.0))),
         jnp.zeros((2 * dim, 2 * dim))
     )
     filtered = _solver(init, vector_field, h, N, sqrt, EKF0=False)

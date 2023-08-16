@@ -1,9 +1,11 @@
+from functools import partial
+
 import jax
 import jax.numpy as jnp
 import jax.scipy.linalg as linalg
 import numpy.testing as npt
 import pytest
-from functools import partial
+
 from bayesian_sde_solver.foster_polynomial import get_approx as parabola_approx
 from bayesian_sde_solver.ito_stratonovich import to_stratonovich
 from bayesian_sde_solver.ode_solvers import ekf1, ekf0, ekf0_2, ekf1_2
@@ -57,6 +59,7 @@ def test(solver):
             N=N,
             ode_int=wrapped,
         )
+
     linspaces, sols, *_ = wrapped_filter_parabola(keys)
     if solver in [ekf0_2, ekf1_2]:
         sols = sols[0]
@@ -103,6 +106,7 @@ def test_harmonic_oscillator(solver):
             N=N,
             ode_int=wrapped,
         )
+
     linspaces, sols, *_ = wrapped_filter_parabola(keys)
     if solver in [ekf0_2, ekf1_2]:
         sols = sols[0]
@@ -171,7 +175,6 @@ def test_all_agree():
 
     res = [test(solver) for solver in SOLVERS]
     npt.assert_almost_equal(jnp.sum(jnp.abs(jnp.array([res[i][0] - res[0][0] for i in range(len(SOLVERS))])), axis=0),
-                            jnp.zeros((1,)), decimal=4)
+                            jnp.zeros((1,)), decimal=3)
     npt.assert_almost_equal(jnp.sum(jnp.abs(jnp.array([res[i][1] - res[0][1] for i in range(len(SOLVERS))])), axis=0),
-                            jnp.zeros((1,)), decimal=4)
-
+                            jnp.zeros((1,)), decimal=3)

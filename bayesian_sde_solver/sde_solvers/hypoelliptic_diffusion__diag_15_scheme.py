@@ -3,24 +3,35 @@ import jax.numpy as jnp
 
 
 def solver(key, init, drift, sigma, h, N):
-    # simulate hypoelliptic diffusion with 1.5 scheme
-    # https://arxiv.org/abs/1707.04235
-    # does not support non diagonal diffusion matrix
-    # up to the leading order (eq . 32)
+    """
+    Strong Taylor scheme of order 1.5 for hypoelliptic diffusion.
+    See https://arxiv.org/abs/1707.04235.
+    Support only squared diagonal diffusion matrix.
+    Up to the leading order (eq . 32).
+    """
 
     dim = drift(init).shape[0]
 
-    a = lambda x: drift(x)[0]
-    Gamma = lambda x: sigma(x)[1:, :]
-    GammaGammaT = lambda x: Gamma(x) @ Gamma(x).T
-    partialua = lambda x: jax.jacfwd(a)(x)[1:]
-    partialuvdrift = lambda x: jax.jacfwd(drift)(x)
+    def a(x):
+        return drift(x)[0]
+
+    def Gamma(x):
+        return sigma(x)[1:, :]
+
+    def GammaGammaT(x):
+        return Gamma(x) @ Gamma(x).T
+
+    def partialua(x):
+        return jax.jacfwd(a)(x)[1:]
+
+    def partialuvdrift(x):
+        return jax.jacfwd(drift)(x)
 
     def laplaceweighted(sig, f, x):
         # general case
         H = jax.hessian(f)(x)
         sigmasq = sig(x) @ sig(x).T
-        return jax.vmap(lambda h: jnp.einsum("ij,ij->", sigmasq, h))(H)
+        return jax.vmap(lambda _h: jnp.einsum("ij,ij->", sigmasq, _h))(H)
         # special case for diagonal diffusion matrix
         # diagH = jax.vmap(jnp.diag)(jax.hessian(f)(x))
         # diagsigma = jnp.diag(sig(x) @ sig(x).T)

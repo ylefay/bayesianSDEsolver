@@ -17,6 +17,9 @@ def sde_solver(
         N: int,
         ode_int: Callable,
 ) -> Tuple[ArrayLike, ArrayLike, Tuple[ArrayLike]]:
+    """
+    Solve the sequence of random ODEs given a method for generating Brownian motion differentiable approximation.
+    """
     init = x0
     get_coeffs, eval_fn = bm()
 

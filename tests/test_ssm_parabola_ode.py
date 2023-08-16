@@ -1,14 +1,14 @@
+from functools import partial
+
 import jax
 import jax.numpy as jnp
 import numpy.testing as npt
 
 from bayesian_sde_solver.foster_polynomial import get_approx as _get_approx
+from bayesian_sde_solver.ode_solvers import ekf0
+from bayesian_sde_solver.sde_solver import sde_solver
 from bayesian_sde_solver.ssm_parabola import ekf0_marginal_parabola
 from bayesian_sde_solver.ssm_parabola import ssm_parabola_ode_solver
-from bayesian_sde_solver.sde_solver import sde_solver
-from functools import partial
-
-from bayesian_sde_solver.ode_solvers import ekf0
 
 JAX_KEY = jax.random.PRNGKey(1337)
 keys = jax.random.split(JAX_KEY, 1_000_0)
@@ -120,12 +120,12 @@ def test_ibm():
     def wrapped_filter_parabola(key_op):
         return ssm_parabola_ode_solver(key=key_op, drift=drift, sigma=sigma, x0=x0, delta=delta, N=N,
                                        solver=solver)
+
     linspace1, sols, *_ = wrapped_filter_parabola(keys)
     T = N * delta
     npt.assert_allclose(sols[:, -1].mean(axis=0),
                         jnp.array([x0[0] + x0[1] * T, x0[1]])
                         , rtol=10e-02)
-    T = N * delta
     npt.assert_allclose(jnp.cov(sols[:, -1], rowvar=False),
                         jnp.array([[T ** 3 / 3, T ** 2 / 2],
                                    [T ** 2 / 2, T]])

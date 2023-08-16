@@ -34,4 +34,3 @@ def sde_solver(
     traj = samples
     traj = insert(traj, 0, init, axis=0)
     return ts, traj
-

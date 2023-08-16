@@ -3,6 +3,9 @@ import jax.numpy as jnp
 
 
 def solver(key, init, drift, sigma, h, N):
+    """
+    Euler-Maruyama method.
+    """
     dim = sigma(init, 0.0).shape[1]
 
     def body(x, inp):
@@ -21,6 +24,9 @@ def solver(key, init, drift, sigma, h, N):
 
 
 def solver_pathwise(incs, init, drift, sigma, h, N):
+    """
+    Euler-Maruyama method given standard increments, i.e W\sim \mathcal{N}(0_d,I_d).
+    """
     def body(x, inp):
         inc, t = inp
         dW = h ** 0.5 * inc

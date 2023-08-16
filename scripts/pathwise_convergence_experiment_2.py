@@ -5,7 +5,7 @@ import jax.numpy as jnp
 
 from bayesian_sde_solver.foster_polynomial import get_approx_fine as _get_approx_fine
 from bayesian_sde_solver.ito_stratonovich import to_stratonovich
-from bayesian_sde_solver.ode_solvers import ekf0_2, ekf1_2, ekf0, ekf1
+from bayesian_sde_solver.ode_solvers import ekf0_2, ekf1_2, ekf0
 from bayesian_sde_solver.sde_solver import sde_solver
 from bayesian_sde_solver.sde_solvers import euler_maruyama_pathwise
 
@@ -18,13 +18,7 @@ eps = 1.0
 alpha = 1.0
 s = 1.0
 
-
-
-
-
 x0 = jnp.ones((2,))
-
-
 
 
 def drift(x, t):
@@ -47,10 +41,13 @@ def sigma(x, t):
 def drift(x, t):
     def pi(x):
         return jnp.exp(-x @ x.T / 2)
+
     return jax.jacfwd(lambda z: jnp.log(pi(z)))(x)
 
-def sigma(x,t):
+
+def sigma(x, t):
     return jnp.array([[jnp.sqrt(2)]])
+
 
 x0 = jnp.ones((1,))
 
