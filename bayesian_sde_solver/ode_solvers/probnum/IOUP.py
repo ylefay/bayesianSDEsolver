@@ -1,9 +1,9 @@
 from math import factorial
 from typing import Tuple
-from numpy.typing import ArrayLike
 
 import jax.numpy as jnp
 import jax.scipy.linalg as linalg
+from numpy.typing import ArrayLike
 
 
 def transition_function(theta: float, sigma: float, q: int, dt: float, dim: int) -> Tuple[ArrayLike, ArrayLike,

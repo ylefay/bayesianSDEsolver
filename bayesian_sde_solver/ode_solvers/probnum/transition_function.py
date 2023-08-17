@@ -1,8 +1,9 @@
 from typing import Tuple
-from numpy.typing import ArrayLike
+
 import jax
 import jax.numpy as jnp
 import jax.scipy.linalg as linalg
+from numpy.typing import ArrayLike
 
 
 def transition_function(F: jnp.array, u: jnp.array, L: jnp.array, h: float, n_linspace=10000) -> Tuple[

@@ -82,6 +82,7 @@ def experiment(delta, N, M, fine):
             ode_int=wrapped,
         )
 
+    #stocking *coeffs can be memory expensive, see pathwise_convergence_experiment_2_RAM.py
     linspaces, sols, *coeffs = wrapped_filter_parabola(keys)
     if solver in [ekf0_2, ekf1_2]:
         sols = sols[0]
@@ -110,13 +111,14 @@ Ndeltas = Ns
 
 folder = "./"
 solver_name = "ekf0"
-prefix = "langevin" + solver_name
+problem_name = "langevin"
+prefix = solver_name + "_" + problem_name
 for n in range(len(Ndeltas)):
     delta = deltas[n]
-    N = Ndeltas[n]
-    M = Mdeltas[n]
-    fine = fineDeltas[n]
-    s1, s2, incs = experiment(delta, int(N), int(M), int(fine))
+    N = int(Ndeltas[n])
+    M = int(Mdeltas[n])
+    fine = int(fineDeltas[n])
+    s1, s2, incs = experiment(delta, N, M, fine)
     jnp.save(f'{folder}/{prefix}_pathwise_sols_{N}_{M}', s1)
     jnp.save(f'{folder}/{prefix}_pathwise_sols2_{N}_{fine}', s2)
     jnp.save(f'{folder}/{prefix}_paths_{N}_{fine}', incs)

@@ -17,13 +17,6 @@ alpha = 1.0
 s = 1.0
 
 
-def drift(x, t):
-    return jnp.array([[1.0 / eps, -1.0 / eps], [gamma, -1]]) @ x + jnp.array(
-        [s / eps - x[0] ** 3 / eps, alpha])
-
-
-def sigma(x, t):
-    return jnp.array([[0.0], [sig]])
 
 
 def drift(x, t):
@@ -49,16 +42,33 @@ def drift(x, t):
 def sigma(x, t):
     return jnp.array([[0.0, 0.0], [1.0, 0.0]])
 
+def drift(x, t):
+    return jnp.array([[1.0 / eps, -1.0 / eps], [gamma, -1]]) @ x + jnp.array(
+        [s / eps - x[0] ** 3 / eps, alpha])
 
+
+def sigma(x, t):
+    return jnp.array([[0.0, 0.0], [sig, 0.0]])
+
+# stochastic pendulum
+x0 = jnp.array([jnp.pi / 4, jnp.pi / 4]).reshape((2, ))
+
+
+def drift(x, t):
+    return jnp.array([x[1], -9.81 * jnp.sin(x[0])])
+
+
+def sigma(x, t):
+    return jnp.array([[0.0, 0.0], [1.0, 0.0]])
 drift_s, sigma_s = to_stratonovich(drift, sigma)
 
 init = x0
 
 
-@partial(jnp.vectorize, signature="()->(d,n,s),(d,n,s),(d,k,l)", excluded=(1, 2,))
+@partial(jnp.vectorize, signature="()->(d,n,s),(d,n,s)", excluded=(1, 2,))
 @partial(jax.jit, static_argnums=(1, 2,))
 def experiment(delta, N, M):
-    keys = jax.random.split(JAX_KEY, 1_0000)
+    keys = jax.random.split(JAX_KEY, 1_000_000)
 
     def solver(key, init, delta, drift, diffusion, T):
         return ekf0_marginal_parabola(key, init, delta, drift, diffusion, h=T / M, N=M, sqrt=True)
@@ -84,23 +94,24 @@ def experiment(delta, N, M):
         return euler_maruyama_pathwise(inc, init=x0, drift=drift, sigma=sigma, h=delta, N=1 * shape_incs[1])
 
     linspaces2, sols2 = wrapped_euler_maruyama_piecewise(incs)
-    return sols, sols2, incs
+    return sols, sols2
 
 
-Ns = jnp.array([4, 8, 16, 32, 64, 128])
-deltas = jnp.array([0.25, 0.125, 0.0625, 0.03125, 0.015625, 0.0078125])
+
+Ns = jnp.array([4, 8, 16, 32, 64, 128, 256])
+deltas = jnp.array([0.25, 0.125, 0.0625, 0.03125, 0.015625, 0.0078125, 0.00390625])
 Mdeltas = jnp.ones((len(deltas),)) * Ns ** 0
 Ndeltas = Ns
 
 folder = "./"
-solver_name = "ssm_parabola_ekf0"
-prefix = "IBM" + solver_name
+solver_name = "ekf0_ssm_"
+problem_name = "pendulum"
+prefix = solver_name + "_" + problem_name
 for n in range(len(Ndeltas)):
     fine = 1  # since we sample the parabola, we cannot go with finer solutions
     delta = deltas[n]
-    N = Ndeltas[n]
-    M = Mdeltas[n]
-    s1, s2, incs = experiment(delta, int(N), int(M))
+    N = int(Ndeltas[n])
+    M = int(Mdeltas[n])
+    s1, s2 = experiment(delta, N, M)
     jnp.save(f'{folder}/{prefix}_pathwise_sols_{N}_{M}', s1)
     jnp.save(f'{folder}/{prefix}_pathwise_sols2_{N}_{fine}', s2)
-    jnp.save(f'{folder}/{prefix}_paths_{N}_{fine}', incs)

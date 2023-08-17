@@ -24,6 +24,7 @@ setuptools.setup(
         "matplotlib>=3.6.3",
         "pytest",
         "numpy>=1.24.3",
+        "tqdm"
     ],
     long_description_content_type="text/markdown",
     keywords="probabilistic state space bayesian statistics sampling algorithms sde",
