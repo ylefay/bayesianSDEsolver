@@ -59,7 +59,7 @@ if solver in [ekf0_2, ekf1_2]:
     init = (x0, P0)
 
 
-@partial(jnp.vectorize, signature="()->(d,n,s),(d,n,s),(d,k,l)", excluded=(1, 2, 3,))
+@partial(jnp.vectorize, signature="()->(d,n,s),(d,n,s)", excluded=(1, 2, 3,))
 @partial(jax.jit, static_argnums=(1, 2, 3,))
 def experiment(delta, N, M, fine):
 
@@ -101,7 +101,8 @@ def experiment(delta, N, M, fine):
             next_x = ode_int(sample_key, init=x1, vector_field=vector_field, T=delta)
             dt = delta / fine
             standard_incs = coeffs_k[2] * jnp.sqrt(1/dt)
-            next_x2 = euler_maruyama_pathwise(standard_incs, init=x2, drift=drift_shifted, sigma=sigma_shifted, h=dt, N=fine)
+            _, euler_path = euler_maruyama_pathwise(standard_incs, init=x2, drift=drift_shifted, sigma=sigma_shifted, h=dt, N=fine)
+            next_x2 = euler_path[-1]
             return (next_x, next_x2), (next_x, next_x2)
 
         keys = jax.random.split(key, N)
@@ -114,7 +115,7 @@ def experiment(delta, N, M, fine):
         traj2 = insert(traj2, 0, init, axis=0)
         return ts, traj, traj2
 
-    keys = jax.random.split(JAX_KEY, 1_0000)
+    keys = jax.random.split(JAX_KEY, 1_000_000)
 
     def wrapped(_key, init, vector_field, T):
         return solver(None, init=init, vector_field=vector_field, h=T / M, N=M)
@@ -138,10 +139,6 @@ def experiment(delta, N, M, fine):
     if solver in [ekf0_2, ekf1_2]:
         sols = sols[0]
 
-    @jax.vmap
-    def wrapped_euler_maruyama_piecewise(inc):
-        return euler_maruyama_pathwise(inc, init=x0, drift=drift, sigma=sigma, h=dt, N=fine * shape_incs[1])
-
     return sols, sol2
 
 
@@ -159,6 +156,6 @@ for n in range(len(Ndeltas)):
     N = Ndeltas[n]
     M = Mdeltas[n]
     fine = fineDeltas[n]
-    s1, s2, incs = experiment(delta, int(N), int(M), int(fine))
+    s1, s2 = experiment(delta, int(N), int(M), int(fine))
     jnp.save(f'{folder}/{prefix}_pathwise_sols_{N}_{M}', s1)
     jnp.save(f'{folder}/{prefix}_pathwise_sols2_{N}_{fine}', s2)
