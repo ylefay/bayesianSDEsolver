@@ -112,7 +112,7 @@ Ndeltas = Ns
 folder = "./"
 solver_name = "ekf0"
 problem_name = "langevin"
-prefix = solver_name + "_" + problem_name
+prefix = f"{solver_name}_{problem_name}"
 for n in range(len(Ndeltas)):
     delta = deltas[n]
     N = int(Ndeltas[n])

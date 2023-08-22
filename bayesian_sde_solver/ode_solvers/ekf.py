@@ -5,7 +5,7 @@ from bayesian_sde_solver.ode_solvers.probnum import IOUP_transition_function
 from bayesian_sde_solver.ode_solvers.probnum import ekf
 
 
-def _solver(init, vector_field, h, N, sqrt=False, EKF0=False):
+def _solver(init, vector_field, h, N, sqrt=False, EKF0=False, theta=0.0):
     """
     EKF{0, 1} implementation.
     IOUP prior.
@@ -29,7 +29,7 @@ def _solver(init, vector_field, h, N, sqrt=False, EKF0=False):
         _,
         transition_covariance,
         transition_matrix
-    ) = IOUP_transition_function(theta=0.0, sigma=1.0, q=1, dt=h, dim=dim)
+    ) = IOUP_transition_function(theta=theta, sigma=1.0, q=1, dt=h, dim=dim)
 
     if sqrt:
         transition_covariance = jnp.linalg.cholesky(transition_covariance)

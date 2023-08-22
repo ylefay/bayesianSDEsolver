@@ -4,7 +4,7 @@ from bayesian_sde_solver.ode_solvers.ekf import _solver
 from bayesian_sde_solver.ode_solvers.probnum import interlace, interlace_matrix
 
 
-def solver(_, init, vector_field, h, N):
+def solver(_, init, vector_field, h, N, theta=0.0):
     """
     Wrapper for EKF0 with the prior being initialized at the previous posterior.
     Hence, this solver leads to one prior for the whole trajectory.

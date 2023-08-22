@@ -7,7 +7,7 @@ import numpy.testing as npt
 from bayesian_sde_solver.foster_polynomial import get_approx as _get_approx
 from bayesian_sde_solver.ode_solvers import ekf0
 from bayesian_sde_solver.sde_solver import sde_solver
-from bayesian_sde_solver.ssm_parabola import ekf0_marginal_parabola
+from bayesian_sde_solver.ssm_parabola import ekf0_marginal_parabola, ekf1_marginal_parabola
 from bayesian_sde_solver.ssm_parabola import ssm_parabola_ode_solver
 
 JAX_KEY = jax.random.PRNGKey(1337)
@@ -35,7 +35,6 @@ def test_linear_sde_unidimensional():
     def wrapped_filter_parabola(key_op):
         return ssm_parabola_ode_solver(key=key_op, drift=drift, sigma=sigma, x0=x0, delta=delta, N=N,
                                        solver=solver)
-
     _, sols, *_ = wrapped_filter_parabola(keys)
 
     # For linear SDEs, should exactly coincide with simple ekf methods
