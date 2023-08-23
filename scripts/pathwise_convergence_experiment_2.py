@@ -65,7 +65,7 @@ def experiment(delta, N, M, fine):
     keys = jax.random.split(JAX_KEY, 1_0000)
 
     def wrapped(_key, init, vector_field, T):
-        return solver(None, init=init, vector_field=vector_field, h=T / M, N=M)
+        return solver(_key, init=init, vector_field=vector_field, h=T / M, N=M)
 
     get_approx_fine = partial(_get_approx_fine, N=fine)
 
