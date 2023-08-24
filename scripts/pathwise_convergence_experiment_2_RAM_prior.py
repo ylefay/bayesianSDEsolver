@@ -93,7 +93,7 @@ def experiment(delta, N, M, fine):
 
     keys = jax.random.split(JAX_KEY, 1_000_000)
 
-    prior = IOUP_transition_function(theta=theta, sigma=1.0, h=delta/M, q=1, dim=x0.shape[0])
+    prior = IOUP_transition_function(theta=theta, sigma=1.0, dt=delta/M, q=1, dim=x0.shape[0])
     solver = partial(_solver, prior=prior)
     def wrapped(_key, init, vector_field, T):
         return solver(_key, init=init, vector_field=vector_field, h=T / M, N=M)
