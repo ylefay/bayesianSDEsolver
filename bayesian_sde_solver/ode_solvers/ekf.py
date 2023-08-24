@@ -5,10 +5,10 @@ from bayesian_sde_solver.ode_solvers.probnum import IOUP_transition_function
 from bayesian_sde_solver.ode_solvers.probnum import ekf
 
 
-def _solver(init, vector_field, h, N, sqrt=False, EKF0=False, theta=0.0):
+def _solver(init, vector_field, h, N, sqrt=False, EKF0=False, prior=None):
     """
     EKF{0, 1} implementation.
-    IOUP prior.
+    IBM prior by default.
     One derivative of the vector field is used, q = 1.
     No observation noise, R = 0.
     """
@@ -24,13 +24,18 @@ def _solver(init, vector_field, h, N, sqrt=False, EKF0=False, theta=0.0):
         def observation_function(x, t):
             # IVP observation function
             return x[1::2] - vector_field(x[::2], t)
-
-    (
-        _,
-        transition_covariance,
-        transition_matrix
-    ) = IOUP_transition_function(theta=theta, sigma=1.0, q=1, dt=h, dim=dim)
-
+    if prior is None:
+        (
+            _,
+            transition_covariance,
+            transition_matrix
+        ) = IOUP_transition_function(theta=0.0, sigma=1.0, q=1, dt=h, dim=dim)
+    else:
+        (
+            _,
+            transition_covariance,
+            transition_matrix
+        ) = prior
     if sqrt:
         transition_covariance = jnp.linalg.cholesky(transition_covariance)
 

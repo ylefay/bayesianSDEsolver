@@ -7,11 +7,11 @@ from bayesian_sde_solver.ode_solvers.probnum import ekf
 from bayesian_sde_solver.ode_solvers.probnum import interlace
 
 
-def _solver(init, drift, diffusion, delta, h, N, sqrt=True, EKF0=False, theta=0.0):
+def _solver(init, drift, diffusion, delta, h, N, sqrt=True, EKF0=False, prior=None):
     """
     EKF{0, 1} implementation for the Parabola ODE method with
     the polynomial coefficients as part of the state.
-    IOUP prior.
+    IBM prior by default.
     One derivative of the vector field is used, q = 1.
     No observation noise, R = 0.
     """
@@ -58,12 +58,18 @@ def _solver(init, drift, diffusion, delta, h, N, sqrt=True, EKF0=False, theta=0.
         def observation_function(x, t):
             # IVP observation function
             return x[1::4] - extended_vector_field(x, t)
-
-    (
-        _,
-        one_block_transition_covariance,
-        one_block_transition_matrix
-    ) = IOUP_transition_function(theta=theta, sigma=1.0, q=1, dt=h, dim=1)
+    if prior is None:
+        (
+            _,
+            one_block_transition_covariance,
+            one_block_transition_matrix
+        ) = IOUP_transition_function(theta=0.0, sigma=1.0, q=1, dt=h, dim=1)
+    else:
+        (
+            _,
+            one_block_transition_covariance,
+            one_block_transition_matrix
+        ) = prior
 
     if sqrt:
         one_block_transition_covariance = jnp.linalg.cholesky(one_block_transition_covariance)

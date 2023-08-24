@@ -6,7 +6,7 @@ from bayesian_sde_solver.ode_solvers.ekf1 import _solver
 from bayesian_sde_solver.ode_solvers.probnum import interlace
 
 
-def solver(key, init, vector_field, h, N, sqrt=False, theta=0.0):
+def solver(key, init, vector_field, h, N, sqrt=False, prior=None):
     """
     Wrapper for EKF0 with new prior at each step.
     Using sqrt.
@@ -17,7 +17,7 @@ def solver(key, init, vector_field, h, N, sqrt=False, theta=0.0):
         interlace((init, vector_field(init, 0.0))),
         jnp.zeros((2 * dim, 2 * dim))
     )
-    filtered = _solver(init, vector_field, h, N, sqrt, EKF0=True, theta=theta)
+    filtered = _solver(init, vector_field, h, N, sqrt, EKF0=True, prior=prior)
     m, P = filtered
     if key is not None:
         sqrtP = P if sqrt else jnp.real(linalg.sqrtm(P))

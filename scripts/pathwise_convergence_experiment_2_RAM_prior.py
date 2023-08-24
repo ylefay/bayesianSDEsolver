@@ -8,11 +8,11 @@ from bayesian_sde_solver.foster_polynomial import get_approx_fine as _get_approx
 from bayesian_sde_solver.ito_stratonovich import to_stratonovich
 from bayesian_sde_solver.ode_solvers import ekf0_2, ekf1_2, ekf0
 from bayesian_sde_solver.sde_solvers import euler_maruyama_pathwise
-
+from bayesian_sde_solver.ode_solvers.probnum import IOUP_transition_function
 JAX_KEY = jax.random.PRNGKey(1337)
 
+_solver = ekf0
 theta = 1.0
-solver = partial(ekf0, theta=theta)
 
 x0 = jnp.ones((1,))
 
@@ -28,7 +28,7 @@ def sigma(x, t):
 drift_s, sigma_s = to_stratonovich(drift, sigma)
 
 init = x0
-if solver in [ekf0_2, ekf1_2]:
+if _solver in [ekf0_2, ekf1_2]:
     P0 = jnp.zeros((x0.shape[0], x0.shape[0]))
     init = (x0, P0)
 
@@ -93,6 +93,8 @@ def experiment(delta, N, M, fine):
 
     keys = jax.random.split(JAX_KEY, 1_000_000)
 
+    prior = IOUP_transition_function(theta=theta, sigma=1.0, h=delta/M, q=1, dim=x0.shape[0])
+    solver = partial(_solver, prior=prior)
     def wrapped(_key, init, vector_field, T):
         return solver(_key, init=init, vector_field=vector_field, h=T / M, N=M)
 

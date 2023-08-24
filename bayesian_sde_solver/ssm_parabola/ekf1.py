@@ -5,7 +5,7 @@ import jax.scipy.linalg as linalg
 from bayesian_sde_solver.ssm_parabola.ekf import _solver
 
 
-def solver(key, init, delta, drift, diffusion, h, N, sqrt=False, theta=0.0):
+def solver(key, init, delta, drift, diffusion, h, N, sqrt=False, prior=None):
     """
     Wrapper for EKF1 with new prior at each step.
     Including Brownian increments and Levy areas as part of the observation.
@@ -13,7 +13,7 @@ def solver(key, init, delta, drift, diffusion, h, N, sqrt=False, theta=0.0):
     """
     dim = init.shape[0]
 
-    filtered = _solver(init, drift, diffusion, delta, h, N, sqrt, EKF0=False, theta=theta)
+    filtered = _solver(init, drift, diffusion, delta, h, N, sqrt, EKF0=False, prior=prior)
     m, P = filtered
     if key is not None:
         sqrtP = P if sqrt else jnp.real(linalg.sqrtm(P))
