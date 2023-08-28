@@ -7,21 +7,25 @@ from bayesian_sde_solver.ode_solvers.probnum import ekf
 from bayesian_sde_solver.ode_solvers.probnum import interlace
 
 
-def _solver(init, drift, diffusion, delta, h, N, sqrt=True, EKF0=False, prior=None):
+def _solver(init, drift, diffusion, delta, h, N, sqrt=True, EKF0=False, prior=None, noise=None):
     """
     EKF{0, 1} implementation for the Parabola ODE method with
     the polynomial coefficients as part of the state.
     IBM prior by default.
     One derivative of the vector field is used, q = 1.
-    No observation noise, R = 0.
+    No observation noise by default, R = 0.
+    Algorithm 4.
     """
 
     ts = jnp.linspace(h, N * h, N)
     dim = int(init.shape[0])
     dim_brownian = diffusion(init, 0.0).shape[1]
     assert dim == dim_brownian
-    noise = jnp.zeros((dim, dim))
-
+    if noise is None:
+        noise = jnp.zeros((dim, dim))
+    else:
+        assert noise.shape == (dim, dim)
+        
     Evfvf = 4 / delta * diffusion(init, 0.0) @ diffusion(init, 0.0).T
     Evfw = diffusion(init, 0.0)
     Evfi = - jnp.sqrt(6) / 2 * diffusion(init, 0.0)
@@ -77,7 +81,7 @@ def _solver(init, drift, diffusion, delta, h, N, sqrt=True, EKF0=False, prior=No
     init = (mean, var)
 
     one_block_transition_matrix = jnp.block(
-         [[one_block_transition_matrix, jnp.zeros((2, 2))],
+        [[one_block_transition_matrix, jnp.zeros((2, 2))],
          [jnp.zeros((2, 2)), jnp.eye(2)]]
     )
     one_block_transition_covariance = jnp.block(

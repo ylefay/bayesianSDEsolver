@@ -9,6 +9,7 @@ from bayesian_sde_solver.ode_solvers import ekf0_2, ekf1_2, ekf0
 from bayesian_sde_solver.sde_solver import sde_solver
 from bayesian_sde_solver.sde_solvers import euler_maruyama_pathwise
 
+from bayesian_sde_solver.ode_solvers.probnum import IOUP_transition_function
 JAX_KEY = jax.random.PRNGKey(1337)
 solver = ekf0
 
@@ -20,6 +21,9 @@ s = 1.0
 
 x0 = jnp.ones((2,))
 
+
+_solver = ekf0
+theta = 1.0
 
 def drift(x, t):
     return jnp.array([[0.0, 1.0], [0.0, 0.0]]) @ x
@@ -63,6 +67,9 @@ if solver in [ekf0_2, ekf1_2]:
 @partial(jax.jit, static_argnums=(1, 2, 3,))
 def experiment(delta, N, M, fine):
     keys = jax.random.split(JAX_KEY, 1_0000)
+
+    prior = IOUP_transition_function(theta=0.0, sigma=1.0, dt=delta / M, q=1, dim=x0.shape[0])
+    solver = partial(_solver, prior=prior, noise=jnp.array([[0.0]]))
 
     def wrapped(_key, init, vector_field, T):
         return solver(_key, init=init, vector_field=vector_field, h=T / M, N=M)

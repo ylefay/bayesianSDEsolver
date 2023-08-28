@@ -8,7 +8,7 @@ from bayesian_sde_solver.foster_polynomial import get_approx as parabola_approx
 
 # Expectancy of the Lipschitz constant of the Flow:
 # \mathbb{E}[e^{L(delta)}] \leq 1 + K_\sigma(\sqrt{\frac{3}{2\pi}}+\sqrt{\frac{2}{\pi}})\sqrt{\delta}
-# Remark C.1
+# Remark D.1
 
 seed = jax.random.PRNGKey(1337)
 keys = jax.random.split(seed, 100000)

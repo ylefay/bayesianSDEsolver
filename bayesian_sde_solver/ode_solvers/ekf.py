@@ -5,16 +5,19 @@ from bayesian_sde_solver.ode_solvers.probnum import IOUP_transition_function
 from bayesian_sde_solver.ode_solvers.probnum import ekf
 
 
-def _solver(init, vector_field, h, N, sqrt=False, EKF0=False, prior=None):
+def _solver(init, vector_field, h, N, sqrt=False, EKF0=False, prior=None, noise=None):
     """
     EKF{0, 1} implementation.
     IBM prior by default.
     One derivative of the vector field is used, q = 1.
-    No observation noise, R = 0.
+    No observation noise by default, R = 0.
     """
     ts = jnp.linspace(h, N * h, N)
     dim = int(init[0].shape[0] / 2)
-    noise = jnp.zeros((dim, dim))
+    if noise is None:
+        noise = jnp.zeros((dim, dim))
+    else:
+        assert noise.shape == (dim, dim)
 
     if EKF0:
         def observation_function(x, t):
