@@ -22,9 +22,6 @@ def transition_function(F: jnp.array, u: jnp.array, L: jnp.array, h: float, n_li
     linspace = jnp.linspace(0, h, n_linspace)
     A = linalg.expm(F * h)
 
-    def transition(x):
-        return jnp.dot(A, x)
-
     @jax.vmap
     def integrand_xi(s):
         return linalg.expm(F * s) @ u

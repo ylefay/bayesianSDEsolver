@@ -43,7 +43,6 @@ if _solver in [ekf0_2, ekf1_2]:
 
 
 @partial(jnp.vectorize, signature="()->(d,n,s),(d,n,s)", excluded=(1, 2, 3,))
-@partial(jax.jit, static_argnums=(1, 2, 3,))
 def experiment(delta, N, M, fine):
     # special sde_solver function to solve RAM issue
     from typing import Callable, Tuple

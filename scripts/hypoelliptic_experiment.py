@@ -35,7 +35,6 @@ def sigma(x, t):
 
 
 @partial(jnp.vectorize, signature="()->(d,n,s)", excluded=(1, 2,))
-@partial(jax.jit, static_argnums=(1, 2,))
 def scheme_ekf(delta, N=20, M=1):
     keys = jax.random.split(JAX_KEY, 1_000_00)
 
@@ -62,7 +61,6 @@ def scheme_ekf(delta, N=20, M=1):
 
 
 @partial(jnp.vectorize, signature="()->(d,n,s)", excluded=(1,))
-@partial(jax.jit, static_argnums=(1,))
 def scheme_ito_15(delta, N=20):
     keys = jax.random.split(JAX_KEY, 1_000_00)
 

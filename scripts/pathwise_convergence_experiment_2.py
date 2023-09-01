@@ -64,7 +64,6 @@ if solver in [ekf0_2, ekf1_2]:
 
 
 @partial(jnp.vectorize, signature="()->(d,n,s),(d,n,s),(d,k,l)", excluded=(1, 2, 3,))
-@partial(jax.jit, static_argnums=(1, 2, 3,))
 def experiment(delta, N, M, fine):
     keys = jax.random.split(JAX_KEY, 1_0000)
 
