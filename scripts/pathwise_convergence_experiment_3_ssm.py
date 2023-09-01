@@ -4,7 +4,7 @@ import jax
 import jax.numpy as jnp
 
 from bayesian_sde_solver.ito_stratonovich import to_stratonovich
-from bayesian_sde_solver.sde_solvers import euler_maruyama_pathwise
+from bayesian_sde_solver.sde_solvers import euler_maruyama
 from bayesian_sde_solver.ssm_parabola import ekf0_marginal_parabola
 from bayesian_sde_solver.ssm_parabola import ssm_parabola_ode_solver
 
@@ -65,9 +65,8 @@ drift_s, sigma_s = to_stratonovich(drift, sigma)
 init = x0
 
 
-@partial(jnp.vectorize, signature="()->(d,n,s),(d,n,s)", excluded=(1, 2,))
-@partial(jax.jit, static_argnums=(1, 2,))
-def experiment(delta, N, M):
+@partial(jnp.vectorize, signature="()->(d,n,s),(d,n,s)", excluded=(1, 2, 3))
+def experiment(delta, N, M, fine):
     keys = jax.random.split(JAX_KEY, 1_000_000)
 
     def solver(key, init, delta, drift, diffusion, T):
@@ -90,11 +89,14 @@ def experiment(delta, N, M):
     incs *= jnp.sqrt(1 / delta)
 
     @jax.vmap
-    def wrapped_euler_maruyama_piecewise(inc):
-        return euler_maruyama_pathwise(inc, init=x0, drift=drift, sigma=sigma, h=delta, N=1 * shape_incs[1])
+    def wrapped_euler_maruyama(key_op):
+        return euler_maruyama(key=key_op, init=x0, drift=drift, sigma=sigma, h=delta/fine, N=fine * shape_incs[1])
 
-    linspaces2, sols2 = wrapped_euler_maruyama_piecewise(incs)
-    return sols, sols2
+    linspaces2, sols2 = wrapped_euler_maruyama(keys)
+    sampled_linspaces2 = linspaces2[:, ::fine, ...]
+    sampled_sols2 = sols2[:, ::fine, ...]
+
+    return sols, sampled_sols2
 
 
 
@@ -102,16 +104,17 @@ Ns = jnp.array([4, 8, 16, 32, 64, 128, 256])
 deltas = jnp.array([0.25, 0.125, 0.0625, 0.03125, 0.015625, 0.0078125, 0.00390625])
 Mdeltas = jnp.ones((len(deltas),)) * Ns ** 0
 Ndeltas = Ns
-
+fineDeltas = Ns**1
 folder = "./"
 solver_name = "ekf0_ssm_"
 problem_name = "pendulum"
 prefix = solver_name + "_" + problem_name
 for n in range(len(Ndeltas)):
-    fine = 1  # since we sample the parabola, we cannot go with finer solutions
+    fine = int(fineDeltas[n])
     delta = deltas[n]
     N = int(Ndeltas[n])
     M = int(Mdeltas[n])
-    s1, s2 = experiment(delta, N, M)
+    s1, s2 = experiment(delta, N, M, fine)
     jnp.save(f'{folder}/{prefix}_pathwise_sols_{N}_{M}', s1)
     jnp.save(f'{folder}/{prefix}_pathwise_sols2_{N}_{fine}', s2)
+# warning: no path convergence, only moment.

@@ -9,10 +9,9 @@ from bayesian_sde_solver.ito_stratonovich import to_stratonovich, to_ito
 from bayesian_sde_solver.ode_solvers import ekf0_2, ekf1_2, ekf0
 from bayesian_sde_solver.sde_solvers import euler_maruyama_pathwise
 from bayesian_sde_solver.ode_solvers.probnum import IOUP_transition_function
-
 JAX_KEY = jax.random.PRNGKey(1337)
 
-_solver = ekf0
+_solver = ekf0_2
 theta = 1.0
 
 
@@ -22,28 +21,41 @@ def fhn():
     eps = 0.1
     alpha = 0.8
     s = 0.0
-    x0 = jnp.zeros((2,))
-
+    x0 = jnp.zeros((2, ))
     def drift(x, t):
         return jnp.array([[1.0 / eps, -1.0 / eps], [gamma, -1]]) @ x + jnp.array(
             [s / eps - x[0] ** 3 / eps, alpha])
 
     def sigma(x, t):
         return jnp.array([[0.0], [sig]])
+    return x0, drift, sigma
 
+def stochastic_pendulum():
+    g = 9.8
+    l = 1
+    tau = 2
+    s0 = 2
+    s1 = 1
+    rho = 1.4
+    x0 = jnp.array([[jnp.pi/4],[0]])
+    def drift(x, t):
+        return jnp.array([[0, 1],[-g/l, 0]])@jnp.array([[jnp.sin(x[0])],[x[1]]])
+
+    def sigma(x, t):
+        return jnp.exp(-t / tau) * jnp.array([[s0, rho],
+                                              [rho, s1]])
     return x0, drift, sigma
 
 
 x0, drift, sigma = fhn()
 drift_s, sigma_s = to_stratonovich(drift, sigma)
+
 init = x0
 if _solver in [ekf0_2, ekf1_2]:
     P0 = jnp.zeros((x0.shape[0], x0.shape[0]))
     init = (x0, P0)
 
 
-@partial(jnp.vectorize, signature="()->(d,n,s),(d,n,s)", excluded=(1, 2, 3,))
-@partial(jax.jit, static_argnums=(1, 2, 3,))
 def experiment(delta, N, M, fine):
     # special sde_solver function to solve RAM issue
     from typing import Callable, Tuple
@@ -86,10 +98,9 @@ def experiment(delta, N, M, fine):
             dt = delta / fine
             standard_incs = coeffs_k[2] * jnp.sqrt(1 / dt)
             drift_shifted_ito, sigma_shifted_ito = to_ito(drift_shifted, sigma_shifted)
-            _, euler_path = euler_maruyama_pathwise(standard_incs, init=x2, drift=drift_shifted_ito,
-                                                    sigma=sigma_shifted_ito,
+            _, euler_path = euler_maruyama_pathwise(standard_incs, init=x2[0], drift=drift_shifted_ito, sigma=sigma_shifted_ito,
                                                     h=dt, N=fine)
-            next_x2 = euler_path[-1]
+            next_x2 = (euler_path[-1], next_x[1])
             return (next_x, next_x2), (next_x, next_x2)
 
         keys = jax.random.split(key, N)
@@ -104,9 +115,8 @@ def experiment(delta, N, M, fine):
 
     keys = jax.random.split(JAX_KEY, 1_000)
 
-    prior = IOUP_transition_function(theta=theta, sigma=1.0, dt=delta / M, q=1, dim=x0.shape[0])
+    prior = IOUP_transition_function(theta=0.0, sigma=1.0, dt=delta/M, q=1, dim=x0.shape[0])
     solver = partial(_solver, prior=prior, noise=None)
-
     def wrapped(_key, init, vector_field, T):
         return solver(_key, init=init, vector_field=vector_field, h=T / M, N=M)
 
@@ -126,16 +136,16 @@ def experiment(delta, N, M, fine):
         )
 
     linspaces, sols, sol2 = wrapped_filter_parabola(keys)
-    if solver in [ekf0_2, ekf1_2]:
+    if _solver in [ekf0_2, ekf1_2]:
         sols = sols[0]
+        sol2 = sol2[0]
 
     return sols, sol2
 
-
-Ns = jnp.array([4, 8, 16, 32, 64])
+Ns = jnp.array([4, 8, 16, 32,64])
 deltas = jnp.array([0.25, 0.125, 0.0625, 0.03125, 0.015625])
-fineDeltas = Ns ** 1
-Mdeltas = jnp.ones((len(deltas),)) * Ns ** 0
+fineDeltas = Ns ** 2
+Mdeltas = jnp.ones((len(deltas),)) * Ns ** 1
 Ndeltas = Ns
 
 folder = "./"
