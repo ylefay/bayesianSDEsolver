@@ -25,12 +25,12 @@ def _solver(init, drift, diffusion, delta, h, N, sqrt=True, EKF0=False, prior=No
         noise = jnp.zeros((dim, dim))
     else:
         assert noise.shape == (dim, dim)
-        
+
+    mean = interlace((init, drift(init, 0.0), jnp.zeros((dim,)), jnp.zeros((dim,))))
+
     Evfvf = 4 / delta * diffusion(init, 0.0) @ diffusion(init, 0.0).T
     Evfw = diffusion(init, 0.0)
     Evfi = - jnp.sqrt(6) / 2 * diffusion(init, 0.0)
-
-    mean = interlace((init, drift(init, 0.0), jnp.zeros((dim,)), jnp.zeros((dim,))))
 
     def block(i, j):
         return jnp.array([[0, 0, 0, 0],
