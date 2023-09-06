@@ -11,9 +11,7 @@ from bayesian_sde_solver.sde_solvers import euler_maruyama_pathwise
 from bayesian_sde_solver.ode_solvers.probnum import IOUP_transition_function
 JAX_KEY = jax.random.PRNGKey(1337)
 
-_solver = ekf0_2
-theta = 1.0
-
+_solver = ekf1_2
 
 def fhn():
     gamma = 1.5
@@ -23,27 +21,11 @@ def fhn():
     s = 0.0
     x0 = jnp.zeros((2, ))
     def drift(x, t):
-        return jnp.array([[1.0 / eps, -1.0 / eps], [gamma, -1]]) @ x + jnp.array(
-            [s / eps - x[0] ** 3 / eps, alpha])
+        return 10*(jnp.array([[1.0 / eps, -1.0 / eps], [gamma, -1]]) @ x + jnp.array(
+            [s / eps - x[0] ** 3 / eps, alpha]))
 
     def sigma(x, t):
-        return jnp.array([[0.0], [sig]])
-    return x0, drift, sigma
-
-def stochastic_pendulum():
-    g = 9.8
-    l = 1
-    tau = 2
-    s0 = 2
-    s1 = 1
-    rho = 1.4
-    x0 = jnp.array([[jnp.pi/4],[0]])
-    def drift(x, t):
-        return jnp.array([[0, 1],[-g/l, 0]])@jnp.array([[jnp.sin(x[0])],[x[1]]])
-
-    def sigma(x, t):
-        return jnp.exp(-t / tau) * jnp.array([[s0, rho],
-                                              [rho, s1]])
+        return 10*jnp.array([[0.0], [sig]])
     return x0, drift, sigma
 
 
@@ -53,7 +35,7 @@ drift_s, sigma_s = to_stratonovich(drift, sigma)
 init = x0
 if _solver in [ekf0_2, ekf1_2]:
     P0 = jnp.zeros((x0.shape[0], x0.shape[0]))
-    init = (x0, P0)
+    init = (x0, x0, P0)
 
 
 def experiment(delta, N, M, fine):
@@ -100,7 +82,7 @@ def experiment(delta, N, M, fine):
             drift_shifted_ito, sigma_shifted_ito = to_ito(drift_shifted, sigma_shifted)
             _, euler_path = euler_maruyama_pathwise(standard_incs, init=x2[0], drift=drift_shifted_ito, sigma=sigma_shifted_ito,
                                                     h=dt, N=fine)
-            next_x2 = (euler_path[-1], next_x[1])
+            next_x2 = (euler_path[-1], next_x[1], next_x[2])
             return (next_x, next_x2), (next_x, next_x2)
 
         keys = jax.random.split(key, N)
@@ -113,14 +95,14 @@ def experiment(delta, N, M, fine):
         traj2 = insert(traj2, 0, init, axis=0)
         return ts, traj, traj2
 
-    keys = jax.random.split(JAX_KEY, 1_000)
+    keys = jax.random.split(JAX_KEY, 5)
 
     prior = IOUP_transition_function(theta=0.0, sigma=1.0, dt=delta/M, q=1, dim=x0.shape[0])
-    solver = partial(_solver, prior=prior, noise=None)
+    solver = partial(_solver, prior=prior, noise=None, sqrt=True)
     def wrapped(_key, init, vector_field, T):
         return solver(_key, init=init, vector_field=vector_field, h=T / M, N=M)
 
-    get_approx_fine = partial(_get_approx_fine, N=fine)
+    get_approx_fine = partial(_get_approx_fine, N=fine, dim=sigma(x0, 0.).shape[1])
 
     @jax.vmap
     def wrapped_filter_parabola(key_op):
@@ -142,11 +124,12 @@ def experiment(delta, N, M, fine):
 
     return sols, sol2
 
-Ns = jnp.array([4, 8, 16, 32,64])
-deltas = jnp.array([0.25, 0.125, 0.0625, 0.03125, 0.015625])
-fineDeltas = Ns ** 2
-Mdeltas = jnp.ones((len(deltas),)) * Ns ** 1
-Ndeltas = Ns
+deltas = 1/jnp.array([16,32,64,128,256,512,1024])
+Ns = 1/deltas
+fineN = Ns
+Mdeltas = jnp.ones((len(deltas),)) * (Ns)**1.0
+T = 1.0
+Ndeltas = T/deltas
 
 folder = "./"
 solver_name = "ekf0"
@@ -156,7 +139,7 @@ for n in range(len(Ndeltas)):
     delta = deltas[n]
     N = int(Ndeltas[n])
     M = int(Mdeltas[n])
-    fine = int(fineDeltas[n])
+    fine = int(fineN[n])
     s1, s2 = experiment(delta, N, M, fine)
     jnp.save(f'{folder}/{prefix}_pathwise_sols_{N}_{M}', s1)
     jnp.save(f'{folder}/{prefix}_pathwise_sols2_{N}_{fine}', s2)

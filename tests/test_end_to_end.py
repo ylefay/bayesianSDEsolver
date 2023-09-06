@@ -11,11 +11,9 @@ from bayesian_sde_solver.ito_stratonovich import to_stratonovich
 from bayesian_sde_solver.ode_solvers import ekf1, ekf0, ekf0_2, ekf1_2
 from bayesian_sde_solver.sde_solver import sde_solver
 
-SOLVERS = [ekf0, ekf1, ekf1_2, ekf0_2]
-_len = len(SOLVERS)
-for solver in SOLVERS[:_len]:
-    if solver not in [ekf1_2, ekf0_2]:
-        SOLVERS.append(partial(solver, sqrt=False))
+SOLVERS = [ekf0, ekf1, ekf1_2, ekf0_2, partial(ekf0, sqrt=True),
+           partial(ekf1, sqrt=True), partial(ekf0_2, sqrt=True),
+           partial(ekf1_2, sqrt=True)]
 
 N = 1000
 M = 5
@@ -38,9 +36,9 @@ def test(solver):
 
     x0 = jnp.ones((1,))
     init = x0
-    if solver in [ekf0_2, ekf1_2]:
+    if solver in [ekf0_2, ekf1_2] or isinstance(solver, partial) and solver.func in [ekf0_2, ekf1_2]:
         P0 = jnp.zeros((x0.shape[0], x0.shape[0]))
-        init = (x0, P0)
+        init = (x0, x0, P0)
 
     delta = 1 / N
 
@@ -61,7 +59,7 @@ def test(solver):
         )
 
     linspaces, sols, *_ = wrapped_filter_parabola(keys)
-    if solver in [ekf0_2, ekf1_2]:
+    if solver in [ekf0_2, ekf1_2] or isinstance(solver, partial) and solver.func in [ekf0_2, ekf1_2]:
         sols = sols[0]
     npt.assert_allclose(sols[:, -1].mean(axis=0), x0 * jnp.exp(mu * delta * N), rtol=10e-02)
     npt.assert_allclose(sols[:, -1].std(axis=0),
@@ -85,9 +83,9 @@ def test_harmonic_oscillator(solver):
 
     x0 = jnp.ones((2,))
     init = x0
-    if solver in [ekf0_2, ekf1_2]:
+    if solver in [ekf0_2, ekf1_2] or isinstance(solver, partial) and solver.func in [ekf0_2, ekf1_2]:
         P0 = jnp.zeros((x0.shape[0], x0.shape[0]))
-        init = (x0, P0)
+        init = (x0, x0, P0)
 
     delta = 1 / N
 
@@ -108,7 +106,7 @@ def test_harmonic_oscillator(solver):
         )
 
     linspaces, sols, *_ = wrapped_filter_parabola(keys)
-    if solver in [ekf0_2, ekf1_2]:
+    if solver in [ekf0_2, ekf1_2] or isinstance(solver, partial) and solver.func in [ekf0_2, ekf1_2]:
         sols = sols[0]
 
     def theoretical_mean_variance(t):
@@ -147,9 +145,9 @@ def test_all_agree():
     def test(solver):
         x0 = jnp.ones((1,))
         init = x0
-        if solver in [ekf0_2, ekf1_2]:
+        if solver in [ekf0_2, ekf1_2] or isinstance(solver, partial) and solver.func in [ekf0_2, ekf1_2]:
             P0 = jnp.zeros((x0.shape[0], x0.shape[0]))
-            init = (x0, P0)
+            init = (x0, x0, P0)
         delta = 1 / N
 
         def wrapped(_key, init, vector_field, T):
@@ -169,7 +167,7 @@ def test_all_agree():
             )
 
         linspaces, sols, *_ = wrapped_filter_parabola(keys)
-        if solver in [ekf0_2, ekf1_2]:
+        if solver in [ekf0_2, ekf1_2] or isinstance(solver, partial) and solver.func in [ekf0_2, ekf1_2]:
             sols = sols[0]
         return sols[:, -1].mean(axis=0), sols[:, -1].std(axis=0)
 

@@ -73,7 +73,7 @@ def experiment(delta, N, M, fine):
     def wrapped(_key, init, vector_field, T):
         return solver(_key, init=init, vector_field=vector_field, h=T / M, N=M)
 
-    get_approx_fine = partial(_get_approx_fine, N=fine)
+    get_approx_fine = partial(_get_approx_fine, N=fine, dim=sigma(x0, 0.).shape[1])
 
     @jax.vmap
     def wrapped_filter_parabola(key_op):
