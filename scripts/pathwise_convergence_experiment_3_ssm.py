@@ -8,66 +8,19 @@ from bayesian_sde_solver.sde_solvers import euler_maruyama
 from bayesian_sde_solver.ssm_parabola import ekf0_marginal_parabola
 from bayesian_sde_solver.ssm_parabola import ssm_parabola_ode_solver
 
+import ivp
 JAX_KEY = jax.random.PRNGKey(1337)
 
-gamma = 1.0
-sig = 1.0
-eps = 1.0
-alpha = 1.0
-s = 1.0
 
 
-
-
-def drift(x, t):
-    def pi(x):
-        return jnp.exp(-x @ x.T / 2)
-
-    return jax.jacfwd(lambda z: jnp.log(pi(z)))(x)
-
-
-def sigma(x, t):
-    return jnp.array([[jnp.sqrt(2)]])
-
-
-x0 = jnp.ones((1,))
-
-x0 = jnp.ones((2,))
-
-
-def drift(x, t):
-    return jnp.array([[0.0, 1.0], [0.0, 0.0]]) @ x
-
-
-def sigma(x, t):
-    return jnp.array([[0.0, 0.0], [1.0, 0.0]])
-
-def drift(x, t):
-    return jnp.array([[1.0 / eps, -1.0 / eps], [gamma, -1]]) @ x + jnp.array(
-        [s / eps - x[0] ** 3 / eps, alpha])
-
-
-def sigma(x, t):
-    return jnp.array([[0.0, 0.0], [sig, 0.0]])
-
-# stochastic pendulum
-x0 = jnp.array([jnp.pi / 4, jnp.pi / 4]).reshape((2, ))
-
-
-def drift(x, t):
-    return jnp.array([x[1], -9.81 * jnp.sin(x[0])])
-
-
-def sigma(x, t):
-    return jnp.array([[0.0, 0.0], [1.0, 0.0]])
+x0, drift, sigma = ivp.square_matrix_fhn()
 drift_s, sigma_s = to_stratonovich(drift, sigma)
-
 init = x0
 
 
 @partial(jnp.vectorize, signature="()->(d,n,s),(d,n,s)", excluded=(1, 2, 3))
 def experiment(delta, N, M, fine):
-    keys = jax.random.split(JAX_KEY, 1_000_000)
+    keys = jax.random.split(JAX_KEY, 1_000)
 
     def solver(key, init, delta, drift, diffusion, T):
         return ekf0_marginal_parabola(key, init, delta, drift, diffusion, h=T / M, N=M, sqrt=True)
@@ -84,37 +37,37 @@ def experiment(delta, N, M, fine):
                                        )
 
     linspaces, sols, *coeffs = wrapped_filter_parabola(keys)
-    incs = coeffs[0]
-    shape_incs = incs.shape
-    incs *= jnp.sqrt(1 / delta)
 
     @jax.vmap
     def wrapped_euler_maruyama(key_op):
-        return euler_maruyama(key=key_op, init=x0, drift=drift, sigma=sigma, h=delta/fine, N=fine * shape_incs[1])
+       return euler_maruyama(key=key_op, init=x0, drift=drift, sigma=sigma, h=delta/fine, N=fine * N)
 
     linspaces2, sols2 = wrapped_euler_maruyama(keys)
     sampled_linspaces2 = linspaces2[:, ::fine, ...]
     sampled_sols2 = sols2[:, ::fine, ...]
 
     return sols, sampled_sols2
+    #return sols
 
 
+deltas = 1 / jnp.array([16, 32, 64, 128, 256, 512, 1024])
+Ns = 1 / deltas
+fineN = Ns
+Mdeltas = jnp.ones((len(deltas),)) * (Ns) ** 0.
+T = 10.0
+Ndeltas = T / deltas
 
-Ns = jnp.array([4, 8, 16, 32, 64, 128, 256])
-deltas = jnp.array([0.25, 0.125, 0.0625, 0.03125, 0.015625, 0.0078125, 0.00390625])
-Mdeltas = jnp.ones((len(deltas),)) * Ns ** 0
-Ndeltas = Ns
-fineDeltas = Ns**1
 folder = "./"
-solver_name = "ekf0_ssm_"
-problem_name = "pendulum"
-prefix = solver_name + "_" + problem_name
+solver_name = "EKF0_SSM"
+problem_name = "FHN"
+prefix = f"{solver_name}_{problem_name}"
 for n in range(len(Ndeltas)):
-    fine = int(fineDeltas[n])
+    fine = int(fineN[n])
     delta = deltas[n]
     N = int(Ndeltas[n])
     M = int(Mdeltas[n])
     s1, s2 = experiment(delta, N, M, fine)
+    #s1 = experiment(delta, N, M)
     jnp.save(f'{folder}/{prefix}_pathwise_sols_{N}_{M}', s1)
     jnp.save(f'{folder}/{prefix}_pathwise_sols2_{N}_{fine}', s2)
 # warning: no path convergence, only moment.

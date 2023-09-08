@@ -59,7 +59,7 @@ def get_approx_and_brownian(dim=1, N=100):
 
 def get_approx_fine(dim=1, N=100):
     """
-    This gives the parabola approximation constructed using finer sampled parabolas.
+    This gives the parabola approximation constructed using fine parabolas.
     This method is used by Foster to compute pathwise errors.
     """
     _parabolas, _eval_parabola = get_approx(dim=dim)

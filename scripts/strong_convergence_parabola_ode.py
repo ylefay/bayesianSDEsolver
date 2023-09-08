@@ -6,22 +6,34 @@ import jax.numpy as jnp
 
 from bayesian_sde_solver.foster_polynomial import get_approx_fine as _get_approx_fine
 from bayesian_sde_solver.ito_stratonovich import to_stratonovich
-from bayesian_sde_solver.ode_solvers import ekf0
 from bayesian_sde_solver.sde_solvers import euler_maruyama_pathwise
-from bayesian_sde_solver.ode_solvers.probnum import IOUP_transition_function
-import ivp
+from bayesian_sde_solver.ode_solvers import euler
+
 JAX_KEY = jax.random.PRNGKey(1337)
 
-_solver = ekf0
+
+def fhn():
+    gamma = 1.5
+    sig = 0.3
+    eps = 0.1
+    alpha = 0.8
+    s = 0.0
+    x0 = jnp.zeros((2, ))
+    def drift(x, t):
+        return (jnp.array([[1.0 / eps, -1.0 / eps], [gamma, -1]]) @ x + jnp.array(
+            [s / eps - x[0] ** 3 / eps, alpha]))
+
+    def sigma(x, t):
+        return jnp.array([[0.0], [sig]])
+    return x0, drift, sigma
 
 
-
-
-x0, drift, sigma = ivp.fhn()
+x0, drift, sigma = fhn()
 drift_s, sigma_s = to_stratonovich(drift, sigma)
 init = x0
 
-@partial(jnp.vectorize, signature="()->(d,n,s),(d,n,s)", excluded=(1, 2, 3,))
+
+
 def experiment(delta, N, M, fine):
     # special sde_solver function to solve RAM issue
     from typing import Callable, Tuple
@@ -55,20 +67,22 @@ def experiment(delta, N, M, fine):
             _, key_k, t_k = inp
             bm_key, sample_key = jax.random.split(key_k, 2)
             coeffs_k = get_coeffs(bm_key, delta)
+
             func = lambda t: eval_fn(t, delta, *coeffs_k)
             drift_shifted = lambda z, t: drift(z, t + t_k)
             sigma_shifted = lambda z, t: sigma(z, t + t_k)
-
             vector_field = lambda z, t: drift(z, t + t_k) + sigma(z, t + t_k) @ jax.jacfwd(func)(t)
+
             next_x = ode_int(sample_key, init=x1, vector_field=vector_field, T=delta)
+
             dt = delta / fine
             incs = coeffs_k[2]
             #assuming additive noise
             #drift_shifted_ito, sigma_shifted_ito = to_ito(drift_shifted, sigma_shifted)
             drift_shifted_ito, sigma_shifted_ito = drift_shifted, sigma_shifted
-            _, euler_path = euler_maruyama_pathwise(incs, init=x2, drift=drift_shifted_ito,
-                                                    sigma=sigma_shifted_ito,
+            _, euler_path = euler_maruyama_pathwise(incs, init=x2, drift=drift_shifted_ito, sigma=sigma_shifted_ito,
                                                     h=dt, N=fine)
+
             next_x2 = euler_path[-1]
             return (next_x, next_x2), (next_x, next_x2)
 
@@ -82,13 +96,11 @@ def experiment(delta, N, M, fine):
         traj2 = insert(traj2, 0, init, axis=0)
         return ts, traj, traj2
 
-    keys = jax.random.split(JAX_KEY, 100_000)
+    keys = jax.random.split(JAX_KEY, 1000)
 
-    prior = IOUP_transition_function(theta=0., sigma=1.0, dt=delta / M, q=1, dim=x0.shape[0])
-    solver = partial(_solver, prior=prior, noise=None, sqrt=True)
-
+    solver = euler
     def wrapped(_key, init, vector_field, T):
-        return solver(_key, init=init, vector_field=vector_field, h=T / M, N=M)
+        return solver(init=init, vector_field=vector_field, h=T / M, N=M)
 
     get_approx_fine = partial(_get_approx_fine, N=fine, dim=sigma(x0, 0.).shape[1])
 
@@ -106,26 +118,22 @@ def experiment(delta, N, M, fine):
         )
 
     linspaces, sols, sol2 = wrapped_filter_parabola(keys)
+
     return sols, sol2
 
-
-deltas = 1/jnp.array([16,32,64,128,256,512,1024])
+deltas = 1/jnp.array([32,64,128,256])
 Ns = 1/deltas
-fineN = Ns**1.0
-Mdeltas = jnp.ones((len(deltas),)) * (Ns)**0.
+fineN = Ns
+Mdeltas = jnp.ones((len(deltas),)) * (Ns)**2
 T = 10.0
 Ndeltas = T/deltas
 
-
 folder = "./"
-solver_name = "EKF0"
-problem_name = "FHN"
-prefix = f"{solver_name}_{problem_name}"
 for n in range(len(Ndeltas)):
     delta = deltas[n]
     N = int(Ndeltas[n])
     M = int(Mdeltas[n])
     fine = int(fineN[n])
     s1, s2 = experiment(delta, N, M, fine)
-    jnp.save(f'{folder}/{prefix}_pathwise_sols_{N}_{M}', s1)
-    jnp.save(f'{folder}/{prefix}_pathwise_sols2_{N}_{fine}', s2)
+    jnp.save(f'{folder}/pathwise_sols_EM_{N}_{M}', s1)
+    jnp.save(f'{folder}/pathwise_sols2_E_{N}_{fine}', s2)

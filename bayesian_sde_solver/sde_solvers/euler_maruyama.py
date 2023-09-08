@@ -23,17 +23,21 @@ def solver(key, init, drift, sigma, h, N):
     return ts, samples
 
 
-def solver_pathwise(incs, init, drift, sigma, h, N):
+def solver_pathwise(incs, init, drift, sigma, h, N, standard=False):
     """
-    Euler-Maruyama method given standard increments, i.e W\sim \mathcal{N}(0_d,I_d).
+    Euler-Maruyama method given increments,
+    if standard is set to True then incs \sim \mathcal{N}(0_d,I_d),
+    Assuming regular grid.
     """
+
     def body(x, inp):
-        inc, t = inp
-        dW = h ** 0.5 * inc
+        dW, t = inp
         out = x + h * drift(x, t) + sigma(x, t) @ dW
         return out, out
 
     ts = jnp.linspace(0, N * h, N + 1)
+    if standard:
+        incs *= h ** 0.5
     inps = incs, ts[:-1]
     _, samples = jax.lax.scan(body, init, inps)
     samples = jnp.insert(samples, 0, init, axis=0)

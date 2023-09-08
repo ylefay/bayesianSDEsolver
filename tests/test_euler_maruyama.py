@@ -60,8 +60,8 @@ def test_ibm_path():
     N = 100
     dt = 1.0 / N
     incs = jax.random.normal(key, shape=(N, 1))
-    normalized_incs = incs * jnp.sqrt(dt)
-    linspace, sols = euler_maruyama_pathwise(incs, init=x0, drift=drift, sigma=sigma, h=dt, N=N)
+    linspace, sols = euler_maruyama_pathwise(incs, init=x0, drift=drift, sigma=sigma, h=dt, N=N, standard=True)
+    normalized_incs = incs * dt ** 0.5
     B = jnp.cumsum(normalized_incs)
     B = jnp.insert(B, 0, 0.0)
     V = x0[1] + B

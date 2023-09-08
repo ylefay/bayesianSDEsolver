@@ -97,7 +97,6 @@ def experiment(delta, N, M, fine):
     shape_incs = incs.shape
     assert fine == shape_incs[2]
     incs = incs.reshape((shape_incs[0], fine * shape_incs[1], shape_incs[3]))
-    incs *= jnp.sqrt(1 / dt)
 
     @jax.vmap
     def wrapped_euler_maruyama_piecewise(inc):
