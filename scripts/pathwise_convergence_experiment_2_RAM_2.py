@@ -13,23 +13,8 @@ JAX_KEY = jax.random.PRNGKey(1337)
 
 _solver = ekf0_2
 
-def fhn():
-    gamma = 1.5
-    sig = 0.3
-    eps = 0.1
-    alpha = 0.8
-    s = 0.0
-    x0 = jnp.zeros((2, ))
-    def drift(x, t):
-        return (jnp.array([[1.0 / eps, -1.0 / eps], [gamma, -1]]) @ x + jnp.array(
-            [s / eps - x[0] ** 3 / eps, alpha]))
-
-    def sigma(x, t):
-        return jnp.array([[0.0], [sig]])
-    return x0, drift, sigma
-
-
-x0, drift, sigma = fhn()
+import ivp
+x0, drift, sigma = ivp.fhn()
 drift_s, sigma_s = to_stratonovich(drift, sigma)
 
 init = x0
@@ -127,18 +112,19 @@ def experiment(delta, N, M, fine):
 
     return sols, sol2
 
-deltas = 1/jnp.array([1024])
+deltas = 1/jnp.array([16,32,64,128,256,512,1024])
 Ns = 1/deltas
 fineN = Ns**0
 Mdeltas = jnp.ones((len(deltas),)) * (Ns)**0.5
-T = 10.0
+T = 1.0
 Ndeltas = T/deltas
 
 
-folder = "./"
 solver_name = "EKF0_2"
 problem_name = "FHN"
 prefix = f"{solver_name}_{problem_name}"
+folder = "./EKF1_IBM/"
+print(prefix)
 for n in range(len(Ndeltas)):
     delta = deltas[n]
     N = int(Ndeltas[n])

@@ -26,6 +26,28 @@ def square_matrix_fhn():
     x0, drift, _sigma = fhn()
 
     def sigma(x, t):
-        return jnp.array([[0.0, 0.0], [_sigma(x, t)[1,0], 0.0]])
+        return jnp.array([[0.0, 0.0], [_sigma(x, t)[1, 0], 0.0]])
+
+    return x0, drift, sigma
+
+
+def ibm():
+    sig = 1.0
+    x0 = jnp.ones((2, ))
+
+    def drift(x, t):
+        return jnp.array([[0., 1.0], [0., 0.]]) @ x
+
+    def sigma(x, t):
+        return jnp.array([[0.0], [sig]])
+
+    return x0, drift, sigma
+
+
+def square_matrix_ibm():
+    x0, drift, _sigma = ibm()
+
+    def sigma(x, t):
+        return jnp.array([[0.0, 0.0], [_sigma(x, t)[1, 0], 0.0]])
 
     return x0, drift, sigma

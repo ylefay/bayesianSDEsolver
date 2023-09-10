@@ -6,18 +6,18 @@ import jax.numpy as jnp
 
 from bayesian_sde_solver.foster_polynomial import get_approx_fine as _get_approx_fine
 from bayesian_sde_solver.ito_stratonovich import to_stratonovich
-from bayesian_sde_solver.ode_solvers import ekf0
+from bayesian_sde_solver.ode_solvers import ekf0, ekf1
 from bayesian_sde_solver.sde_solvers import euler_maruyama_pathwise
 from bayesian_sde_solver.ode_solvers.probnum import IOUP_transition_function
 import ivp
 JAX_KEY = jax.random.PRNGKey(1337)
 
-_solver = ekf0
+_solver = ekf1
 
 
 
 
-x0, drift, sigma = ivp.fhn()
+x0, drift, sigma = ivp.ibm()
 drift_s, sigma_s = to_stratonovich(drift, sigma)
 init = x0
 
@@ -113,14 +113,15 @@ deltas = 1/jnp.array([16,32,64,128,256,512,1024])
 Ns = 1/deltas
 fineN = Ns**1.0
 Mdeltas = jnp.ones((len(deltas),)) * (Ns)**0.
-T = 10.0
+T = 1.0
 Ndeltas = T/deltas
 
 
-folder = "./"
-solver_name = "EKF0"
-problem_name = "FHN"
+solver_name = "EKF1"
+problem_name = "IBM"
 prefix = f"{solver_name}_{problem_name}"
+folder = "./EKF1_IBM/"
+print(prefix)
 for n in range(len(Ndeltas)):
     delta = deltas[n]
     N = int(Ndeltas[n])

@@ -28,16 +28,15 @@ def test_linear_sde_unidimensional():
 
     x0 = jnp.ones((1,))
 
-    def solver(key, init, delta, drift, diffusion, T):
-        return ekf0_marginal_parabola(key, init, delta, drift, diffusion, h=T, N=1, sqrt=False)
+    def solver(key, init, drift, diffusion, T):
+        return ekf0_marginal_parabola(key, init, delta=T, drift=drift, diffusion=diffusion, h=T, N=1, sqrt=True)
 
     @jax.vmap
     def wrapped_filter_parabola(key_op):
         return ssm_parabola_ode_solver(key=key_op, drift=drift, sigma=sigma, x0=x0, delta=delta, N=N,
                                        solver=solver)
-    _, sols, *_ = wrapped_filter_parabola(keys)
+    _, sols = wrapped_filter_parabola(keys)
 
-    # For linear SDEs, should exactly coincide with simple ekf methods
     # EKF solution
     def wrapped2(_key, init, vector_field, T):
         return ekf0(None, init=init, vector_field=vector_field, h=T / 1, N=1)
@@ -45,10 +44,6 @@ def test_linear_sde_unidimensional():
     npt.assert_allclose(sols[:, -1].mean(axis=0), x0 * jnp.exp(1.0 * delta * N), rtol=10e-02)
     npt.assert_allclose(sols[:, -1].std(axis=0),
                         (0.5 * (jnp.exp(1.0 * N * delta * 2) - 1)) ** 0.5, rtol=10e-02)
-
-    # EKF solution
-    def wrapped2(_key, init, vector_field, T):
-        return ekf0(None, init=init, vector_field=vector_field, h=T / 1, N=1)
 
     @jax.vmap
     def wrapped_filter_parabola2(key_op):
@@ -81,15 +76,15 @@ def test_multidimensional_sde():
 
     x0 = jnp.ones((2,))
 
-    def solver(key, init, delta, drift, diffusion, T):
-        return ekf0_marginal_parabola(key, init, delta, drift, diffusion, h=T, N=1, sqrt=False)
+    def solver(key, init, drift, diffusion, T):
+        return ekf0_marginal_parabola(key, init, delta=T, drift=drift, diffusion=diffusion, h=T, N=1, sqrt=True)
 
     @jax.vmap
     def wrapped_filter_parabola(key_op):
         return ssm_parabola_ode_solver(key=key_op, drift=drift, sigma=sigma, x0=x0, delta=delta, N=N,
                                        solver=solver)
 
-    linspace1, sols, *_ = wrapped_filter_parabola(keys)
+    linspace1, sols = wrapped_filter_parabola(keys)
 
     npt.assert_allclose(sols[:, -1].mean(axis=0), x0 * jnp.exp(N * delta), rtol=10e-02)
     npt.assert_allclose(jnp.cov(sols[:, -1], rowvar=False),
@@ -112,15 +107,15 @@ def test_ibm():
 
     x0 = jnp.ones((2,))
 
-    def solver(key, init, delta, drift, diffusion, T):
-        return ekf0_marginal_parabola(key, init, delta, drift, diffusion, h=T, N=1, sqrt=False)
+    def solver(key, init, drift, diffusion, T):
+        return ekf0_marginal_parabola(key, init, delta=T, drift=drift, diffusion=diffusion, h=T, N=1, sqrt=True)
 
     @jax.vmap
     def wrapped_filter_parabola(key_op):
         return ssm_parabola_ode_solver(key=key_op, drift=drift, sigma=sigma, x0=x0, delta=delta, N=N,
                                        solver=solver)
 
-    linspace1, sols, *_ = wrapped_filter_parabola(keys)
+    linspace1, sols = wrapped_filter_parabola(keys)
     T = N * delta
     npt.assert_allclose(sols[:, -1].mean(axis=0),
                         jnp.array([x0[0] + x0[1] * T, x0[1]])
