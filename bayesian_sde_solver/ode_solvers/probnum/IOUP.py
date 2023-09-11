@@ -7,9 +7,10 @@ from numpy.typing import ArrayLike
 
 
 def transition_function(theta: float, sigma: float, q: int, dt: float, dim: int) -> Tuple[ArrayLike, ArrayLike,
-                                                                                          ArrayLike]:
+ArrayLike]:
     """
     Closed formula for Integrated Ornstein-Uhlenbeck transition function.
+    Assuming same prior for each coordinate.
     """
     F = jnp.block(
         [[jnp.zeros(q).reshape((q, 1)), jnp.diag(jnp.ones(q))],

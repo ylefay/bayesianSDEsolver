@@ -1,6 +1,7 @@
 import jax
 import jax.numpy as jnp
 import jax.scipy.linalg as linalg
+
 from bayesian_sde_solver.ode_solvers.ekf import _solver
 from bayesian_sde_solver.ode_solvers.probnum import interlace, interlace_matrix
 

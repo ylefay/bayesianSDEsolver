@@ -13,12 +13,12 @@ from bayesian_sde_solver.utils.ivp import fhn
 
 JAX_KEY = jax.random.PRNGKey(1337)
 
-solver_name = "EKF0"
+solver_name = "EKF1"
 problem_name = "FHN"
 prefix = f"{solver_name}_{problem_name}"
 folder = "./"
 
-_solver = ekf0
+_solver = ekf1
 
 x0, drift, sigma = fhn()
 drift_s, sigma_s = to_stratonovich(drift, sigma)

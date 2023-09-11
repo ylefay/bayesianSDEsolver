@@ -9,18 +9,18 @@ from bayesian_sde_solver.ito_stratonovich import to_stratonovich
 from bayesian_sde_solver.ode_solvers import ekf0, ekf1
 from bayesian_sde_solver.sde_solvers import euler_maruyama_pathwise
 from bayesian_sde_solver.ode_solvers.probnum import IOUP_transition_function
-from bayesian_sde_solver.utils.ivp import fhn
+from bayesian_sde_solver.utils.ivp import ibm
 
 JAX_KEY = jax.random.PRNGKey(1337)
 
-solver_name = "EKF0"
-problem_name = "FHN"
+solver_name = "EKF1"
+problem_name = "IBM"
 prefix = f"{solver_name}_{problem_name}"
 folder = "./"
 
-_solver = ekf0
+_solver = ekf1
 
-x0, drift, sigma = fhn()
+x0, drift, sigma = ibm()
 drift_s, sigma_s = to_stratonovich(drift, sigma)
 init = x0
 

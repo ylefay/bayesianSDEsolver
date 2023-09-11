@@ -12,7 +12,7 @@ from bayesian_sde_solver.utils.ivp import square_matrix_fhn
 
 JAX_KEY = jax.random.PRNGKey(1337)
 
-solver_name = "EKF0_SSM"
+solver_name = "EKF1_SSM"
 problem_name = "FHN"
 prefix = f"{solver_name}_{problem_name}"
 folder = "./"
@@ -21,7 +21,7 @@ x0, drift, sigma = square_matrix_fhn()
 drift_s, sigma_s = to_stratonovich(drift, sigma)
 init = x0
 
-_solver = ekf0_marginal_parabola
+_solver = ekf1_marginal_parabola
 
 @partial(jnp.vectorize, signature="()->(d,n,s)", excluded=(1, 2, 3))
 def experiment(delta, N, M, fine):

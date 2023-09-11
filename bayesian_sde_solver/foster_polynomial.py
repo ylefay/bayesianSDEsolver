@@ -71,7 +71,6 @@ def get_approx_fine(dim=1, N=100):
         fine_eps_0s, fine_eps_1s = _parabolas(keys, fine_dt)
         fine_eps_1s *= 1 / jnp.sqrt(6)
 
-
         # See https://github.com/james-m-foster/igbm-simulation/blob/master/igbm.cpp, l209-230
 
         def update_eps(carry, inps):

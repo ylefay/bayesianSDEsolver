@@ -1,4 +1,5 @@
 from functools import partial
+
 from bayesian_sde_solver.utils.progress_bar import progress_bar_scan
 
 import jax
@@ -9,12 +10,18 @@ from bayesian_sde_solver.ito_stratonovich import to_stratonovich
 from bayesian_sde_solver.ode_solvers import ekf0_2, ekf1_2
 from bayesian_sde_solver.sde_solvers import euler_maruyama_pathwise
 from bayesian_sde_solver.ode_solvers.probnum import IOUP_transition_function
+from bayesian_sde_solver.utils.ivp import fhn
+
 JAX_KEY = jax.random.PRNGKey(1337)
+
+solver_name = "EKF1_2"
+problem_name = "FHN"
+prefix = f"{solver_name}_{problem_name}"
+folder = "./"
 
 _solver = ekf0_2
 
-import ivp
-x0, drift, sigma = ivp.fhn()
+x0, drift, sigma = fhn()
 drift_s, sigma_s = to_stratonovich(drift, sigma)
 
 init = x0

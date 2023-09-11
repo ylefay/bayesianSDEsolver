@@ -6,6 +6,7 @@ def solver(init, vector_field, h, N):
     """
     Euler method.
     """
+
     def body(x, t):
         out = x + h * vector_field(x, t)
         return out, None

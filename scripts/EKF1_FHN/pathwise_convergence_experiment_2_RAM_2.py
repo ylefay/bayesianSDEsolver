@@ -1,30 +1,35 @@
 from functools import partial
-from bayesian_sde_solver.utils import progress_bar
+
+from bayesian_sde_solver.utils.progress_bar import progress_bar
 
 import jax
 import jax.numpy as jnp
 
 from bayesian_sde_solver.foster_polynomial import get_approx_fine as _get_approx_fine
 from bayesian_sde_solver.ito_stratonovich import to_stratonovich
-from bayesian_sde_solver.ode_solvers import ekf0, ekf1
+from bayesian_sde_solver.ode_solvers import ekf0_2, ekf1_2
 from bayesian_sde_solver.sde_solvers import euler_maruyama_pathwise
 from bayesian_sde_solver.ode_solvers.probnum import IOUP_transition_function
-from bayesian_sde_solver.utils.ivp import fhn
 
+from bayesian_sde_solver.utils.ivp import fhn
 JAX_KEY = jax.random.PRNGKey(1337)
 
-solver_name = "EKF0"
+solver_name = "EKF1_2"
 problem_name = "FHN"
 prefix = f"{solver_name}_{problem_name}"
 folder = "./"
 
-_solver = ekf0
+_solver = ekf1_2
 
 x0, drift, sigma = fhn()
 drift_s, sigma_s = to_stratonovich(drift, sigma)
-init = x0
 
-@partial(jnp.vectorize, signature="()->(d,n,s),(d,n,s)", excluded=(1, 2, 3,))
+init = x0
+if _solver in [ekf0_2, ekf1_2]:
+    P0 = jnp.zeros((x0.shape[0], x0.shape[0]))
+    init = (x0, x0, P0)
+
+
 def experiment(delta, N, M, fine):
     # special sde_solver function to solve RAM issue
     from typing import Callable, Tuple
@@ -69,10 +74,10 @@ def experiment(delta, N, M, fine):
             #assuming additive noise
             #drift_shifted_ito, sigma_shifted_ito = to_ito(drift_shifted, sigma_shifted)
             drift_shifted_ito, sigma_shifted_ito = drift_shifted, sigma_shifted
-            _, euler_path = euler_maruyama_pathwise(incs, init=x2, drift=drift_shifted_ito,
-                                                    sigma=sigma_shifted_ito,
+
+            _, euler_path = euler_maruyama_pathwise(incs, init=x2[0], drift=drift_shifted_ito, sigma=sigma_shifted_ito,
                                                     h=dt, N=fine)
-            next_x2 = euler_path[-1]
+            next_x2 = (euler_path[-1], next_x[1], next_x[2])
             return (next_x, next_x2), (next_x, next_x2)
 
         keys = jax.random.split(key, N)
@@ -87,9 +92,8 @@ def experiment(delta, N, M, fine):
 
     keys = jax.random.split(JAX_KEY, 100_000)
 
-    prior = IOUP_transition_function(theta=0., sigma=1.0, dt=delta / M, q=1, dim=x0.shape[0])
+    prior = IOUP_transition_function(theta=0.0, sigma=1.0, dt=delta/M, q=1, dim=x0.shape[0])
     solver = partial(_solver, prior=prior, noise=None, sqrt=True)
-
     def wrapped(_key, init, vector_field, T):
         return solver(_key, init=init, vector_field=vector_field, h=T / M, N=M)
 
@@ -109,13 +113,16 @@ def experiment(delta, N, M, fine):
         )
 
     linspaces, sols, sol2 = wrapped_filter_parabola(keys)
-    return sols, sol2
+    if _solver in [ekf0_2, ekf1_2]:
+        sols = sols[0]
+        sol2 = sol2[0]
 
+    return sols, sol2
 
 deltas = 1/jnp.array([16,32,64,128,256,512,1024])
 Ns = 1/deltas
-fineN = Ns**1.0
-Mdeltas = jnp.ones((len(deltas),)) * (Ns)**0.
+fineN = Ns**0
+Mdeltas = jnp.ones((len(deltas),)) * (Ns)**0
 T = 1.0
 Ndeltas = T/deltas
 

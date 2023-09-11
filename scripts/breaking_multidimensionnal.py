@@ -1,31 +1,27 @@
 from functools import partial
-from bayesian_sde_solver.utils import progress_bar
 
 import jax
 import jax.numpy as jnp
+import jax.scipy.linalg as jlinalg
 
 from bayesian_sde_solver.foster_polynomial import get_approx_fine as _get_approx_fine
-from bayesian_sde_solver.ito_stratonovich import to_stratonovich
-from bayesian_sde_solver.ode_solvers import ekf0, ekf1
-from bayesian_sde_solver.sde_solvers import euler_maruyama_pathwise
+from bayesian_sde_solver.ode_solvers import ekf0
 from bayesian_sde_solver.ode_solvers.probnum import IOUP_transition_function
-from bayesian_sde_solver.utils.ivp import fhn
+from bayesian_sde_solver.utils import progress_bar
+from bayesian_sde_solver.utils.ivp import random_linear_sde
 
 JAX_KEY = jax.random.PRNGKey(1337)
 
 solver_name = "EKF0"
-problem_name = "FHN"
+problem_name = "RND_LINEAR_SDE"
 prefix = f"{solver_name}_{problem_name}"
 folder = "./"
 
 _solver = ekf0
 
-x0, drift, sigma = fhn()
-drift_s, sigma_s = to_stratonovich(drift, sigma)
-init = x0
 
-@partial(jnp.vectorize, signature="()->(d,n,s),(d,n,s)", excluded=(1, 2, 3,))
-def experiment(delta, N, M, fine):
+@partial(jnp.vectorize, signature="()->(d,n,s),(d,n,s)", excluded=(1, 2, 3, 4))
+def experiment(delta, N, M, fine, dim):
     # special sde_solver function to solve RAM issue
     from typing import Callable, Tuple
 
@@ -35,6 +31,12 @@ def experiment(delta, N, M, fine):
 
     from bayesian_sde_solver.utils.insert import insert
 
+    x0, drift, sigma = random_linear_sde(key=JAX_KEY, dim=dim)
+    drift_matrix = drift(jnp.identity(n=dim), 0.0)
+    sigma_matrix = sigma(jnp.identity(n=dim), 0.0)
+    transition_matrix = jlinalg.expm(drift_matrix * delta)
+    init = x0
+    fine_ts = jnp.arange(0, delta, M)
     def sde_solver(
             key,
             drift: Callable,
@@ -46,7 +48,8 @@ def experiment(delta, N, M, fine):
             ode_int: Callable,
     ) -> Tuple[ArrayLike, ArrayLike, Tuple[ArrayLike]]:
         """
-        Same as sde_solver but with an intermediary fine Euler Maruyama scheme.
+        Same as sde_solver but with an intermediary fine closed formula scheme,
+        for linear SDE.
         Used for RAM expensive pathwise comparisons.
         """
         init = x0
@@ -59,20 +62,19 @@ def experiment(delta, N, M, fine):
             bm_key, sample_key = jax.random.split(key_k, 2)
             coeffs_k = get_coeffs(bm_key, delta)
             func = lambda t: eval_fn(t, delta, *coeffs_k)
-            drift_shifted = lambda z, t: drift(z, t + t_k)
-            sigma_shifted = lambda z, t: sigma(z, t + t_k)
 
             vector_field = lambda z, t: drift(z, t + t_k) + sigma(z, t + t_k) @ jax.jacfwd(func)(t)
             next_x = ode_int(sample_key, init=x1, vector_field=vector_field, T=delta)
-            dt = delta / fine
             incs = coeffs_k[2]
-            #assuming additive noise
-            #drift_shifted_ito, sigma_shifted_ito = to_ito(drift_shifted, sigma_shifted)
-            drift_shifted_ito, sigma_shifted_ito = drift_shifted, sigma_shifted
-            _, euler_path = euler_maruyama_pathwise(incs, init=x2, drift=drift_shifted_ito,
-                                                    sigma=sigma_shifted_ito,
-                                                    h=dt, N=fine)
-            next_x2 = euler_path[-1]
+
+            @jax.vmap
+            def integrand(idx):
+                """
+                e^{M(delta-s)} @ sigma @ dW(s).
+                """
+                return jlinalg.expm(drift_matrix * (delta - fine_ts.at[idx].get())) @ sigma_matrix @ incs.at[idx].get()
+
+            next_x2 = transition_matrix @ x2 + jnp.sum(integrand(idx=jnp.arange(len(incs))), axis=0)
             return (next_x, next_x2), (next_x, next_x2)
 
         keys = jax.random.split(key, N)
@@ -99,8 +101,8 @@ def experiment(delta, N, M, fine):
     def wrapped_filter_parabola(key_op):
         return sde_solver(
             key=key_op,
-            drift=drift_s,
-            sigma=sigma_s,
+            drift=drift,
+            sigma=sigma,
             x0=init,
             bm=get_approx_fine,
             delta=delta,
@@ -112,20 +114,19 @@ def experiment(delta, N, M, fine):
     return sols, sol2
 
 
-deltas = 1/jnp.array([16,32,64,128,256,512,1024])
-Ns = 1/deltas
-fineN = Ns**1.0
-Mdeltas = jnp.ones((len(deltas),)) * (Ns)**0.
-T = 1.0
-Ndeltas = T/deltas
-
+delta = 1 / 128
+N = 128
+fineN = N ** 1.0
+Mdelta = 1
+T = 1
+Ndelta = T / delta
+dims = jnp.array([1, 2, 4, 8, 16, 32])
 
 print(prefix)
-for n in range(len(Ndeltas)):
-    delta = deltas[n]
-    N = int(Ndeltas[n])
-    M = int(Mdeltas[n])
-    fine = int(fineN[n])
-    s1, s2 = experiment(delta, N, M, fine)
-    jnp.save(f'{folder}/{prefix}_pathwise_sols_{N}_{M}', s1)
-    jnp.save(f'{folder}/{prefix}_pathwise_sols2_{N}_{fine}', s2)
+for dim in dims:
+    N = int(N)
+    Mdelta = int(Mdelta)
+    fineN = int(fineN)
+    s1, s2 = experiment(delta, N, Mdelta, fineN, dim)
+    jnp.save(f'{folder}/{prefix}_pathwise_sols_{N}_{Mdelta}_{dim}', s1)
+    jnp.save(f'{folder}/{prefix}_pathwise_sols2_{N}_{fineN}_{dim}', s2)

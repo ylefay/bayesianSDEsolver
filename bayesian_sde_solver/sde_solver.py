@@ -4,8 +4,8 @@ import jax
 import jax.numpy as jnp
 from numpy.typing import ArrayLike
 
-from bayesian_sde_solver.utils.progress_bar import progress_bar_scan
 from bayesian_sde_solver.utils.insert import insert
+from bayesian_sde_solver.utils.progress_bar import progress_bar
 
 
 def sde_solver(
@@ -24,7 +24,7 @@ def sde_solver(
     init = x0
     get_coeffs, eval_fn = bm()
 
-    @progress_bar_scan(num_samples=N, message=f"N={N}")
+    @progress_bar(num_samples=N, message=f"N={N}")
     def body(x, inp):
         _, key_k, t_k = inp
         bm_key, sample_key = jax.random.split(key_k, 2)

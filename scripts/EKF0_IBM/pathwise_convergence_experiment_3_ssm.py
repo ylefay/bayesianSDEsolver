@@ -8,16 +8,16 @@ from bayesian_sde_solver.sde_solvers import euler_maruyama
 from bayesian_sde_solver.ssm_parabola import ekf0_marginal_parabola, ekf1_marginal_parabola
 from bayesian_sde_solver.ssm_parabola import ssm_parabola_ode_solver
 
-from bayesian_sde_solver.utils.ivp import square_matrix_fhn
+from bayesian_sde_solver.utils.ivp import square_matrix_ibm
 
 JAX_KEY = jax.random.PRNGKey(1337)
 
 solver_name = "EKF0_SSM"
-problem_name = "FHN"
+problem_name = "IBM"
 prefix = f"{solver_name}_{problem_name}"
 folder = "./"
 
-x0, drift, sigma = square_matrix_fhn()
+x0, drift, sigma = square_matrix_ibm()
 drift_s, sigma_s = to_stratonovich(drift, sigma)
 init = x0
 

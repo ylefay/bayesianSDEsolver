@@ -2,9 +2,10 @@ from jax import lax
 from jax.experimental import host_callback
 from tqdm.auto import tqdm
 
-#Original code from Jeremie Coullon
 
-def progress_bar_scan(num_samples, message=None):
+# Original code from Jeremie Coullon
+
+def progress_bar(num_samples, message=None):
     "Progress bar for a JAX scan"
     if message is None:
         message = f"Running for {num_samples:,} iterations"
