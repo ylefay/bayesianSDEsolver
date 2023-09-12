@@ -121,7 +121,7 @@ def experiment(delta, N, M, fine):
 
 deltas = 1/jnp.array([16,32,64,128,256,512,1024])
 Ns = 1/deltas
-fineN = Ns**0
+fineN = Ns**1.0
 Mdeltas = jnp.ones((len(deltas),)) * (Ns)**0
 T = 1.0
 Ndeltas = T/deltas

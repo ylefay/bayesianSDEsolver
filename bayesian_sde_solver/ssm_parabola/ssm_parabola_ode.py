@@ -21,7 +21,7 @@ def sde_solver(
     """
     Similar to sde_solver in bayesian_sde_solver/sde_solver.py 
     Including the Brownian parabola coefficients as part of the state.
-    The ssm_transtion function must be designed to handle the parabola coefficients (i.e based on bayesian_sde_solver.ssm_parabola.ekf._solver)
+    The ssm_transition function must be designed to handle the parabola coefficients (i.e based on bayesian_sde_solver.ssm_parabola.ekf._solver)
     """
 
     @progress_bar(num_samples=N, message=f"N={N}")
