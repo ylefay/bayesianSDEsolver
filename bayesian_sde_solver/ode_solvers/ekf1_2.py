@@ -10,14 +10,15 @@ def solver(key, init, vector_field, h, N, sqrt=False, prior=None, noise=None):
     """
     Wrapper for EKF1 with the prior being initialized at the previous posterior.
     Hence, this solver leads to one prior for the whole trajectory.
+    Gaussian mixture algorithm 3.
     """
     # Todo: check that it's correct
     _, m_0, P_00 = init
     dim = m_0.shape[0]
     H = jax.jacfwd(vector_field, 0)(m_0, 0.0)
-    P_11 = H @ P_00 @ H.T
-    P_01 = P_00 @ H.T
     P_10 = H @ P_00
+    P_11 = P_10 @ H.T
+    P_01 = P_00 @ H.T
     var = interlace_matrix(P_00, P_01, P_10, P_11)
     if sqrt:
         var = jnp.real(linalg.sqrtm(var))

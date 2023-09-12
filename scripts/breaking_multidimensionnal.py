@@ -120,7 +120,7 @@ fineN = N ** 1.0
 Mdelta = 1
 T = 1
 Ndelta = T / delta
-dims = jnp.array([1, 2, 4, 8, 16, 32])
+dims = jnp.array([64])
 
 print(prefix)
 for dim in dims:
