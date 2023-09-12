@@ -93,7 +93,7 @@ def experiment(delta, N, M, fine):
     keys = jax.random.split(JAX_KEY, 100_000)
 
     prior = IOUP_transition_function(theta=0.0, sigma=1.0, dt=delta/M, q=1, dim=x0.shape[0])
-    solver = partial(_solver, prior=prior, noise=None, sqrt=False)
+    solver = partial(_solver, prior=prior, noise=None, sqrt=True)
     def wrapped(_key, init, vector_field, T):
         return solver(_key, init=init, vector_field=vector_field, h=T / M, N=M)
 
@@ -120,7 +120,7 @@ def experiment(delta, N, M, fine):
     return sols, sol2
 
 deltas = 1/jnp.array([16,32,64,128,256,512,1024])
-deltas = 1/jnp.array([16])
+deltas = 1/jnp.array([256])
 Ns = 1/deltas
 fineN = Ns**0
 Mdeltas = jnp.ones((len(deltas),)) * (Ns)**0
@@ -134,8 +134,7 @@ for n in range(len(Ndeltas)):
     N = int(Ndeltas[n])
     M = int(Mdeltas[n])
     fine = int(fineN[n])
-    jax.config.update("jax_debug_nans", False)
-    with jax.disable_jit(True):
+    with jax.disable_jit(False):
         s1, s2 = experiment(delta, N, M, fine)
     jnp.save(f'{folder}/{prefix}_pathwise_sols_{N}_{M}', s1)
     jnp.save(f'{folder}/{prefix}_pathwise_sols2_{N}_{fine}', s2)

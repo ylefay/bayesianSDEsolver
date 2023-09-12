@@ -21,7 +21,9 @@ def solver(key, init, vector_field, h, N, sqrt=False, prior=None, noise=None):
     P_01 = P_00 @ H.T
     var = interlace_matrix(P_00, P_01, P_10, P_11)
     if sqrt:
-        var = jnp.real(linalg.sqrtm(var))
+        jax.lax.cond(jnp.all(jnp.linalg.eigvals(var + var.T) > 0), lambda x: linalg.cholesky(x),
+                     lambda x: jnp.real(linalg.sqrtm(x)),
+                     var)
     init = (
         interlace((m_0, vector_field(m_0, 0.0))),
         var
