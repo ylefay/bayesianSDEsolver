@@ -22,8 +22,8 @@ x0, drift, sigma = fhn()
 drift_s, sigma_s = to_stratonovich(drift, sigma)
 init = x0
 
-@partial(jnp.vectorize, signature="()->(d,n,s),(d,n,s)", excluded=(1, 2, 3,))
-def experiment(delta, N, M, fine):
+@partial(jnp.vectorize, signature="()->(d,n,s),(d,n,s)", excluded=(1, 2,))
+def experiment(delta, N, fine):
     # special sde_solver function to solve RAM issue
     from typing import Callable, Tuple
 
@@ -57,7 +57,8 @@ def experiment(delta, N, M, fine):
             coeffs_k = get_coeffs(bm_key, delta)
 
             incs = coeffs_k[2]
-            total_inc = jnp.sum(incs, axis=0)
+            total_inc = jnp.sum(incs, axis=0)  #The next line is needed because it results in total_inc with shape (sigma(x,0.).shape[0], )
+            total_inc = jnp.reshape(total_inc, (1, *total_inc.shape))
 
             drift_shifted = lambda z, t: drift(z, t + t_k)
             sigma_shifted = lambda z, t: sigma(z, t + t_k)
@@ -121,6 +122,6 @@ for n in range(len(Ndeltas)):
     N = int(Ndeltas[n])
     M = int(Mdeltas[n])
     fine = int(fineN[n])
-    s1, s2 = experiment(delta, N, M, fine)
+    s1, s2 = experiment(delta, N, fine)
     jnp.save(f'{folder}/{prefix}_pathwise_sols_{N}_{M}', s1)
     jnp.save(f'{folder}/{prefix}_pathwise_sols2_{N}_{fine}', s2)

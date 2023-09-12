@@ -37,7 +37,7 @@ def experiment(delta):
 
 
 def theoretical_bound(delta):
-    return (1 + (jnp.sqrt(3 / (2 * 3.1415)) + jnp.sqrt(2 / 3.1415)) * delta ** 0.5)
+    return 1 + (jnp.sqrt(3 / (2 * 3.1415)) + jnp.sqrt(2 / 3.1415)) * delta ** 0.5
 
 
 deltas = jnp.logspace(-5, -4, 10)
