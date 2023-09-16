@@ -8,59 +8,21 @@ from bayesian_sde_solver.ito_stratonovich import to_stratonovich
 from bayesian_sde_solver.ode_solvers import ekf0_2, ekf1_2, ekf0
 from bayesian_sde_solver.sde_solver import sde_solver
 from bayesian_sde_solver.sde_solvers import euler_maruyama_pathwise
-
+from bayesian_sde_solver.utils import ibm
 from bayesian_sde_solver.ode_solvers.probnum import IOUP_transition_function
+
 JAX_KEY = jax.random.PRNGKey(1337)
-solver = ekf0
-
-gamma = 1.0
-sig = 1.0
-eps = 1.0
-alpha = 1.0
-s = 1.0
-
-x0 = jnp.ones((2,))
-
+x0, drift, sigma = ibm()
 
 _solver = ekf0
 theta = 1.0
 
-def drift(x, t):
-    return jnp.array([[0.0, 1.0], [0.0, 0.0]]) @ x
-
-
-def sigma(x, t):
-    return jnp.array([[0.0], [1.0]])
-
-
-def drift(x, t):
-    return jnp.array([[1.0 / eps, -1.0 / eps], [gamma, -1]]) @ x + jnp.array(
-        [s / eps - x[0] ** 3 / eps, alpha])
-
-
-def sigma(x, t):
-    return jnp.array([[0.0], [sig]])
-
-
-def drift(x, t):
-    def pi(x):
-        return jnp.exp(-x @ x.T / 2)
-
-    return jax.jacfwd(lambda z: jnp.log(pi(z)))(x)
-
-
-def sigma(x, t):
-    return jnp.array([[jnp.sqrt(2)]])
-
-
-x0 = jnp.ones((1,))
-
 drift_s, sigma_s = to_stratonovich(drift, sigma)
 
 init = x0
-if solver in [ekf0_2, ekf1_2]:
+if _solver in [ekf0_2, ekf1_2]:
     P0 = jnp.zeros((x0.shape[0], x0.shape[0]))
-    init = (x0, P0)
+    init = (x0, x0, P0)
 
 
 @partial(jnp.vectorize, signature="()->(d,n,s),(d,n,s),(d,k,l)", excluded=(1, 2, 3,))
@@ -88,7 +50,7 @@ def experiment(delta, N, M, fine):
             ode_int=wrapped,
         )
 
-    #stocking *coeffs can be memory expensive, see pathwise_convergence_experiment_2_RAM.py
+    # stocking *coeffs can be memory expensive, see pathwise_convergence_experiment_2_RAM.py
     linspaces, sols, *coeffs = wrapped_filter_parabola(keys)
     if solver in [ekf0_2, ekf1_2]:
         sols = sols[0]

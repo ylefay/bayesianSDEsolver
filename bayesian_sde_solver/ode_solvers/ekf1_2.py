@@ -12,7 +12,6 @@ def solver(key, init, vector_field, h, N, sqrt=False, prior=None, noise=None):
     Hence, this solver leads to one prior for the whole trajectory.
     Gaussian mixture algorithm 3.
     """
-    # Todo: check that it's correct
     _, m_0, P_00 = init
     dim = m_0.shape[0]
     H = jax.jacfwd(vector_field, 0)(m_0, 0.0)

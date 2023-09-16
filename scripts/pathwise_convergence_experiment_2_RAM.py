@@ -27,6 +27,12 @@ init = x0
 @partial(jnp.vectorize, signature="()->(d,n,s),(d,n,s)", excluded=(1, 2, 3,))
 def experiment(delta, N, M, fine):
     # special sde_solver function to solve RAM issue
+    # Algorithm 2 implementation.
+    # delta: mesh size of the Brownian approximations.
+    # N: defines the total integration time: N*delta.
+    # M: number of EKF pass. In the paper, we only consider M = 1.
+    # fine: number of steps within an interval of length delta, for the fine Euler-Maruyama scheme.
+
     from typing import Callable, Tuple
 
     import jax
@@ -85,7 +91,7 @@ def experiment(delta, N, M, fine):
         traj2 = insert(traj2, 0, init, axis=0)
         return ts, traj, traj2
 
-    keys = jax.random.split(JAX_KEY, 100_000)
+    keys = jax.random.split(JAX_KEY, 100_000) #Number of samples.
 
     prior = IOUP_transition_function(theta=0., sigma=1.0, dt=delta / M, q=1, dim=x0.shape[0])
     solver = partial(_solver, prior=prior, noise=None, sqrt=True)

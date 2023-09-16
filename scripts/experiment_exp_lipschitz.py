@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 from bayesian_sde_solver.foster_polynomial import get_approx as parabola_approx
 
-# Expectancy of the Lipschitz constant of the Flow:
+# Expected Lipschitz constant of the flow:
 # \mathbb{E}[e^{L(delta)}] \leq 1 + K_\sigma(\sqrt{\frac{3}{2\pi}}+\sqrt{\frac{2}{\pi}})\sqrt{\delta}
 # Remark D.1
 

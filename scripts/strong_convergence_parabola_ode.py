@@ -8,30 +8,13 @@ from bayesian_sde_solver.foster_polynomial import get_approx_fine as _get_approx
 from bayesian_sde_solver.ito_stratonovich import to_stratonovich
 from bayesian_sde_solver.sde_solvers import euler_maruyama_pathwise
 from bayesian_sde_solver.ode_solvers import euler
+from bayesian_sde_solver.utils.ivp import fhn
 
 JAX_KEY = jax.random.PRNGKey(1337)
-
-
-def fhn():
-    gamma = 1.5
-    sig = 0.3
-    eps = 0.1
-    alpha = 0.8
-    s = 0.0
-    x0 = jnp.zeros((2, ))
-    def drift(x, t):
-        return (jnp.array([[1.0 / eps, -1.0 / eps], [gamma, -1]]) @ x + jnp.array(
-            [s / eps - x[0] ** 3 / eps, alpha]))
-
-    def sigma(x, t):
-        return jnp.array([[0.0], [sig]])
-    return x0, drift, sigma
-
 
 x0, drift, sigma = fhn()
 drift_s, sigma_s = to_stratonovich(drift, sigma)
 init = x0
-
 
 
 def experiment(delta, N, M, fine):
@@ -77,8 +60,8 @@ def experiment(delta, N, M, fine):
 
             dt = delta / fine
             incs = coeffs_k[2]
-            #assuming additive noise
-            #drift_shifted_ito, sigma_shifted_ito = to_ito(drift_shifted, sigma_shifted)
+            # assuming additive noise
+            # drift_shifted_ito, sigma_shifted_ito = to_ito(drift_shifted, sigma_shifted)
             drift_shifted_ito, sigma_shifted_ito = drift_shifted, sigma_shifted
             _, euler_path = euler_maruyama_pathwise(incs, init=x2, drift=drift_shifted_ito, sigma=sigma_shifted_ito,
                                                     h=dt, N=fine)
@@ -99,6 +82,7 @@ def experiment(delta, N, M, fine):
     keys = jax.random.split(JAX_KEY, 1000)
 
     solver = euler
+
     def wrapped(_key, init, vector_field, T):
         return solver(init=init, vector_field=vector_field, h=T / M, N=M)
 
@@ -121,12 +105,13 @@ def experiment(delta, N, M, fine):
 
     return sols, sol2
 
-deltas = 1/jnp.array([32,64,128,256])
-Ns = 1/deltas
+
+deltas = 1 / jnp.array([32, 64, 128, 256])
+Ns = 1 / deltas
 fineN = Ns
 Mdeltas = jnp.ones((len(deltas),)) * (Ns)
 T = 10.0
-Ndeltas = T/deltas
+Ndeltas = T / deltas
 
 folder = "./"
 for n in range(len(Ndeltas)):

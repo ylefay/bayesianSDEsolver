@@ -25,7 +25,13 @@ _solver = ekf0_marginal_parabola
 
 @partial(jnp.vectorize, signature="()->(d,n,s)", excluded=(1, 2, 3))
 def experiment(delta, N, M, fine):
-    keys = jax.random.split(JAX_KEY, 100_000)
+    # Algorithm 4 implementation.
+    # delta: mesh size of the Brownian approximations.
+    # N: defines the total integration time: N*delta.
+    # M: number of EKF pass. In the paper, we only consider M = 1.
+    # fine: number of steps within an interval of length delta, for the fine Euler-Maruyama scheme.
+
+    keys = jax.random.split(JAX_KEY, 100_000) #Number of samples.
 
     def solver(key, init, drift, diffusion, T):
         return _solver(key, init, delta=T, drift=drift, diffusion=diffusion, h=T / M, N=M, sqrt=True)

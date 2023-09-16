@@ -1,6 +1,6 @@
 from functools import partial
 
-from bayesian_sde_solver.utils.progress_bar import progress_bar_scan
+from bayesian_sde_solver.utils.progress_bar import progress_bar
 
 import jax
 import jax.numpy as jnp
@@ -10,12 +10,12 @@ from bayesian_sde_solver.ito_stratonovich import to_stratonovich
 from bayesian_sde_solver.ode_solvers import ekf0_2, ekf1_2
 from bayesian_sde_solver.sde_solvers import euler_maruyama_pathwise
 from bayesian_sde_solver.ode_solvers.probnum import IOUP_transition_function
-from bayesian_sde_solver.utils.ivp import fhn
 
+from bayesian_sde_solver.utils.ivp import fhn
 JAX_KEY = jax.random.PRNGKey(1337)
 
-solver_name = "EKF1_2"
-problem_name = "FHN"
+solver_name = "EKF0_2"
+problem_name = "Attempt2FHN"
 prefix = f"{solver_name}_{problem_name}"
 folder = "./"
 
@@ -32,6 +32,12 @@ if _solver in [ekf0_2, ekf1_2]:
 
 def experiment(delta, N, M, fine):
     # special sde_solver function to solve RAM issue
+    # Algorithm 3 implementation.
+    # delta: mesh size of the Brownian approximations.
+    # N: defines the total integration time: N*delta.
+    # M: number of EKF pass. In the paper, we only consider M = 1.
+    # fine: number of steps within an interval of length delta, for the fine Euler-Maruyama scheme.
+
     from typing import Callable, Tuple
 
     import jax
@@ -57,7 +63,7 @@ def experiment(delta, N, M, fine):
         init = x0
         get_coeffs, eval_fn = bm()
 
-        @progress_bar_scan(num_samples=N, message=f"N={N}")
+        @progress_bar(num_samples=N, message=f"N={N}")
         def body(x, inp):
             x1, x2 = x
             _, key_k, t_k = inp
@@ -90,7 +96,7 @@ def experiment(delta, N, M, fine):
         traj2 = insert(traj2, 0, init, axis=0)
         return ts, traj, traj2
 
-    keys = jax.random.split(JAX_KEY, 100_000)
+    keys = jax.random.split(JAX_KEY, 100_000) #Number of samples
 
     prior = IOUP_transition_function(theta=0.0, sigma=1.0, dt=delta/M, q=1, dim=x0.shape[0])
     solver = partial(_solver, prior=prior, noise=None, sqrt=True)
@@ -121,16 +127,12 @@ def experiment(delta, N, M, fine):
 
 deltas = 1/jnp.array([16,32,64,128,256,512,1024])
 Ns = 1/deltas
-fineN = Ns**0
-Mdeltas = jnp.ones((len(deltas),)) * (Ns)**0.5
+fineN = Ns**1.0
+Mdeltas = jnp.ones((len(deltas),)) * (Ns)**0
 T = 1.0
 Ndeltas = T/deltas
 
 
-solver_name = "EKF0_2"
-problem_name = "FHN"
-prefix = f"{solver_name}_{problem_name}"
-folder = "./EKF1_IBM/"
 print(prefix)
 for n in range(len(Ndeltas)):
     delta = deltas[n]

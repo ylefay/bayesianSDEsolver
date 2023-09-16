@@ -18,10 +18,8 @@ setuptools.setup(
     version="0.1",
     packages=setuptools.find_packages(),
     install_requires=[
-        "chex>=0.1.5",
         "jax>=0.3.25",
         "jaxlib>=0.3.25",
-        "matplotlib>=3.6.3",
         "pytest",
         "numpy>=1.24.3",
         "tqdm"
