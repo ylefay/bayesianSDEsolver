@@ -14,6 +14,12 @@ from bayesian_sde_solver.ode_solvers.probnum import IOUP_transition_function
 JAX_KEY = jax.random.PRNGKey(1337)
 x0, drift, sigma, _ = ibm()
 
+
+folder = "./"
+solver_name = "EKF0"
+problem_name = "IBM"
+prefix = f"{solver_name}_{problem_name}"
+
 _solver = ekf0
 theta = 1.0
 
@@ -76,10 +82,6 @@ fineDeltas = Ns ** 1
 Mdeltas = jnp.ones((len(deltas),)) * Ns ** 0
 Ndeltas = Ns
 
-folder = "./"
-solver_name = "ekf0"
-problem_name = "langevin"
-prefix = f"{solver_name}_{problem_name}"
 for n in range(len(Ndeltas)):
     delta = deltas[n]
     N = int(Ndeltas[n])
