@@ -2,6 +2,21 @@ import jax
 import jax.numpy as jnp
 import jax.scipy.linalg as jlinalg
 
+"""
+Different initial value problems including
+    - FitzHugh-Nagumo
+    - Multidim. linear SDE
+    - Synaptic conductance
+    - Harmonic oscillator
+    - Geometric Brownian motion
+    - Integrated Brownian motion
+with for some, local mean and var. of the density transition
+or closed-form expressions of the mean and variance.
+
+For 1.5 Taylor-Ito scheme, discard the time argument and use squared-matrix diffusion.
+Use squared-matrix diffusion for SSM scheme.
+"""
+
 
 def fhn():
     """
@@ -21,19 +36,36 @@ def fhn():
     def sigma(x, t):
         return jnp.array([[0.0], [sig]])
 
-    return x0, drift, sigma
+    def theoretical_mean_up_to_order_2(t):
+        return x0 + t * jnp.array(
+            [1 / eps * (x0[0] - x0[0] ** 3 - x0[1] + s) + t / 2 * 1 / eps * (
+                    1 / eps * (1 - 3 * x0[0] ** 2) * (x0[0] - x0[0] ** 3 - x0[1] + s)
+                    - (gamma * x0[0] - x0[1] - alpha)),
+             gamma * x0[0] - x0[1] + alpha + t / 2 * (
+                     gamma / eps * (x0[0] - x0[0] ** 3 - x0[1] + s) - (gamma * x0[0] - x0[1] + alpha))])
+
+    def theoretical_variance_up_to_order3(t):
+        return sig ** 2 * jnp.array(
+            [
+                [1 / 3 * t ** 3 * 1 / eps ** 2, -1 / 2 * t ** 2 * 1 / eps],
+                [-1 / 2 * t ** 2 * 1 / eps, t - t ** 2],
+            ])
+
+    return x0, drift, sigma, theoretical_mean_up_to_order_2, theoretical_variance_up_to_order3
 
 
 def square_matrix_fhn():
     """
-    Make the matrix diffusion squared to use ssm_parabola_ode.
+    Make the matrix diffusion squared to use ssm_parabola_ode or 1.5 scheme (in that case, discard
+    the second argument).
+    Theoretical mean and variance of local transition density
     """
-    x0, drift, _sigma = fhn()
+    x0, drift, _sigma, theoretical_mean_up_to_order_2, theoretical_variance_up_to_order3 = fhn()
 
     def sigma(x, t):
         return jnp.array([[0.0, 0.0], [_sigma(x, t)[1, 0], 0.0]])
 
-    return x0, drift, sigma
+    return x0, drift, sigma, theoretical_mean_up_to_order_2, theoretical_variance_up_to_order3
 
 
 def ibm():
@@ -49,16 +81,20 @@ def ibm():
     def sigma(x, t):
         return jnp.array([[0.0], [sig]])
 
-    return x0, drift, sigma
+    def var(t):
+        return jnp.array([[t ** 3 / 3, t ** 2 / 2],
+                          [t ** 2 / 2, t]])
+
+    return x0, drift, sigma, var
 
 
 def square_matrix_ibm():
-    x0, drift, _sigma = ibm()
+    x0, drift, _sigma, var = ibm()
 
     def sigma(x, t):
         return jnp.array([[0.0, 0.0], [_sigma(x, t)[1, 0], 0.0]])
 
-    return x0, drift, sigma
+    return x0, drift, sigma, var
 
 
 def random_linear_sde(key=jax.random.PRNGKey(1337), dim=1, std1=None, std2=None):
@@ -249,9 +285,6 @@ def synaptic_conductance():
     G_L = 50.0
 
     x0 = jnp.array([V0, G_E0, G_I0])
-
-    N = 100
-    h = 1 / N
 
     def drift(x):
         return jnp.array(

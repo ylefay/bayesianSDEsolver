@@ -17,7 +17,7 @@ problem_name = "IBM"
 prefix = f"{solver_name}_{problem_name}"
 folder = "./"
 
-x0, drift, sigma = square_matrix_ibm()
+x0, drift, sigma, _ = square_matrix_ibm()
 drift_s, sigma_s = to_stratonovich(drift, sigma)
 init = x0
 

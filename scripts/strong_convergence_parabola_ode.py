@@ -12,7 +12,7 @@ from bayesian_sde_solver.utils.ivp import fhn
 
 JAX_KEY = jax.random.PRNGKey(1337)
 
-x0, drift, sigma = fhn()
+x0, drift, sigma, _, _ = fhn()
 drift_s, sigma_s = to_stratonovich(drift, sigma)
 init = x0
 

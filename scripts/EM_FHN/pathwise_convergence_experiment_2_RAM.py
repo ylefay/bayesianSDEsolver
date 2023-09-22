@@ -18,7 +18,7 @@ problem_name = "FHN"
 prefix = f"{solver_name}_{problem_name}"
 folder = "./"
 
-x0, drift, sigma = fhn()
+x0, drift, sigma, _, _ = fhn()
 drift_s, sigma_s = to_stratonovich(drift, sigma)
 init = x0
 

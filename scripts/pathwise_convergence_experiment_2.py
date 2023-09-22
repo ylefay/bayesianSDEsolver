@@ -12,7 +12,7 @@ from bayesian_sde_solver.utils import ibm
 from bayesian_sde_solver.ode_solvers.probnum import IOUP_transition_function
 
 JAX_KEY = jax.random.PRNGKey(1337)
-x0, drift, sigma = ibm()
+x0, drift, sigma, _ = ibm()
 
 _solver = ekf0
 theta = 1.0

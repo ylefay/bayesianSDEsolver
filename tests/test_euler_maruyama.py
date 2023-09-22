@@ -35,10 +35,11 @@ def test_gbm_moment():
         decimal=2,
     )
 
+
 def test_ibm_path():
     JAX_KEY = jax.random.PRNGKey(1337)
     key = jax.random.split(JAX_KEY, 1)
-    x0, drift, sigma = ibm()
+    x0, drift, sigma, _ = ibm()
     N = 100
     dt = 1.0 / N
 

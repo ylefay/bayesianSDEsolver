@@ -21,7 +21,7 @@ folder = "./"
 
 _solver = ekf0_2
 
-x0, drift, sigma = ibm()
+x0, drift, sigma, _ = ibm()
 drift_s, sigma_s = to_stratonovich(drift, sigma)
 
 init = x0

@@ -2,7 +2,6 @@ from functools import partial
 
 import jax
 import jax.numpy as jnp
-import jax.scipy.linalg as linalg
 import numpy.testing as npt
 import pytest
 
