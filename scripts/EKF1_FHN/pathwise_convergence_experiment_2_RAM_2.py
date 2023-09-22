@@ -119,7 +119,7 @@ def experiment(delta, N, M, fine):
 
     return sols, sol2
 
-deltas = 1/jnp.array([1024])
+deltas = 1/jnp.array([16])
 Ns = 1/deltas
 fineN = Ns**1.0
 Mdeltas = jnp.ones((len(deltas),)) * (Ns)**0
@@ -133,7 +133,7 @@ for n in range(len(Ndeltas)):
     N = int(Ndeltas[n])
     M = int(Mdeltas[n])
     fine = int(fineN[n])
-    with jax.disable_jit(False):
+    with jax.disable_jit(True):
         s1, s2 = experiment(delta, N, M, fine)
     jnp.save(f'{folder}/{prefix}_pathwise_sols_{N}_{M}', s1)
     jnp.save(f'{folder}/{prefix}_pathwise_sols2_{N}_{fine}', s2)

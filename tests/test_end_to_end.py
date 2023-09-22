@@ -10,6 +10,7 @@ from bayesian_sde_solver.foster_polynomial import get_approx as parabola_approx
 from bayesian_sde_solver.ito_stratonovich import to_stratonovich
 from bayesian_sde_solver.ode_solvers import ekf1, ekf0, ekf0_2, ekf1_2
 from bayesian_sde_solver.sde_solver import sde_solver
+from bayesian_sde_solver.utils.ivp import harmonic_oscillator
 
 SOLVERS = [ekf0, ekf1, ekf1_2, ekf0_2, partial(ekf0, sqrt=True),
            partial(ekf1, sqrt=True), partial(ekf0_2, sqrt=True),
@@ -68,20 +69,7 @@ def test(solver):
 
 @pytest.mark.parametrize("solver", SOLVERS)
 def test_harmonic_oscillator(solver):
-    gamma = .0
-    D = .0
-    sig = 1.0
-
-    Mm = jnp.array([[0.0, 1.0], [-D, -gamma]])
-    C = jnp.array([[0.0], [sig]])
-
-    def drift(x, t):
-        return jnp.dot(Mm, x)
-
-    def sigma(x, t):
-        return C
-
-    x0 = jnp.ones((2,))
+    x0, drift, sigma, theoretical_mean, theoretical_variance = harmonic_oscillator()
     init = x0
     if solver in [ekf0_2, ekf1_2] or isinstance(solver, partial) and solver.func in [ekf0_2, ekf1_2]:
         P0 = jnp.zeros((x0.shape[0], x0.shape[0]))
@@ -109,25 +97,13 @@ def test_harmonic_oscillator(solver):
     if solver in [ekf0_2, ekf1_2] or isinstance(solver, partial) and solver.func in [ekf0_2, ekf1_2]:
         sols = sols[0]
 
-    def theoretical_mean_variance(t):
-        mean = linalg.expm(Mm * t) @ x0
-
-        @jax.vmap
-        def integrand_var(s):
-            B = linalg.expm(Mm * s) @ C
-            return B @ B.T
-
-        linspace_int = jnp.linspace(0, t, 1000)
-        var = jnp.trapz(integrand_var(linspace_int), linspace_int, axis=0)
-        return mean, var
-
-    m, cov = theoretical_mean_variance(N * delta)
+    m, cov = theoretical_mean(N * delta), theoretical_variance(N * delta)
     npt.assert_allclose(
         sols[:, -1].mean(axis=0),
         m,
         rtol=10e-02
     )
-    if sig != 0:
+    if sigma(x0, 0.0)[0, 1] != 0:
         npt.assert_allclose(
             jnp.cov(sols[:, -1], rowvar=False),
             cov,
