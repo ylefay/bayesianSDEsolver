@@ -25,8 +25,10 @@ def solver(key, init, drift, sigma, h, N):
 
 def solver_pathwise(incs, init, drift, sigma, h, N, standard=False):
     """
-    Euler-Maruyama method given increments,
-    if standard is set to True then incs \sim \mathcal{N}(0_d,I_d),
+    Euler-Maruyama method given increment.
+    If standard is set to True then
+    the increments are assumed to be distributed as \mathcal{N}(0_d,I_d),
+    otherwise, as \mathcal{N}(0_d,hI_d).
     Assuming regular grid.
     """
 

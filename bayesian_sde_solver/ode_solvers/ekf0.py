@@ -9,7 +9,6 @@ from bayesian_sde_solver.ode_solvers.probnum import interlace
 def solver(key, init, vector_field, h, N, sqrt=False, prior=None, noise=None):
     """
     Wrapper for EKF0 with new prior at each step.
-    Using sqrt.
     Algorithm 2.
     """
     dim = init.shape[0]

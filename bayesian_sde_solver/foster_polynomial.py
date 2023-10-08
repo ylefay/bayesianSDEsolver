@@ -21,12 +21,13 @@ def get_approx(dim=1):
     @partial(jnp.vectorize, signature="(),(),(),()->()")
     def eval_parabola(t, dt, a, b):
         u = t / dt
-        return a * u + b * jnp.sqrt(6) * u * (u - 1)
+        return a * u + b * jnp.sqrt(6) * u * (
+                    1 - u)  # Instead of * (u - 1) as given in Foster's thesis. However, it is a matter of convention.
 
     return parabolas, eval_parabola
 
 
-def get_approx_and_brownian(dim=1, N=100):
+def get_approx_and_brownian(dim=1, N=1000):
     """
     This gives the parabola approximation of a fine sampled Brownian motion, as well as the corresponding Brownian motion.
     """
@@ -43,8 +44,7 @@ def get_approx_and_brownian(dim=1, N=100):
 
         @jax.vmap
         def integrand(i):
-            u = (i + 1) / N
-            return - (bm.at[i].get()) * jnp.sqrt(6)
+            return (bm.at[i].get()) * jnp.sqrt(6)
 
         eps_1 = jnp.trapz(integrand(_is), dx=1 / N, axis=0) - eps_0 * 0.5 * jnp.sqrt(6)
 

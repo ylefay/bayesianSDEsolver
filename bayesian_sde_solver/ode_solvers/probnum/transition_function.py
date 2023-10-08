@@ -15,7 +15,7 @@ def transition_function(F: jnp.array, u: jnp.array, L: jnp.array, h: float, n_li
     has the following strong solution:
         X(t+h) = \exp{Fh}(X(t) + \int_0^h \exp{-Fs}L \mathrm{d}W_s),
     where
-        X(t+h) \mid X(t) ~ \mathcal{N}(A(h)X(t) + xi(h), Q(h)).
+        X(t+h) \mid X(t) ~ \mathcal{N}(A(h)X(t) + \xi(h), Q(h)).
     ----------------------------
     Return \xi(h), Q(h), A(h).
     """

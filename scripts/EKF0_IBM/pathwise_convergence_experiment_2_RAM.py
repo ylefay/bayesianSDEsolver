@@ -24,6 +24,7 @@ x0, drift, sigma, _ = ibm()
 drift_s, sigma_s = to_stratonovich(drift, sigma)
 init = x0
 
+
 @partial(jnp.vectorize, signature="()->(d,n,s),(d,n,s)", excluded=(1, 2, 3,))
 def experiment(delta, N, M, fine):
     # special sde_solver function to solve RAM issue
@@ -66,8 +67,8 @@ def experiment(delta, N, M, fine):
             next_x = ode_int(sample_key, init=x1, vector_field=vector_field, T=delta)
             dt = delta / fine
             incs = coeffs_k[2]
-            #assuming additive noise
-            #drift_shifted_ito, sigma_shifted_ito = to_ito(drift_shifted, sigma_shifted)
+            # assuming additive noise
+            # drift_shifted_ito, sigma_shifted_ito = to_ito(drift_shifted, sigma_shifted)
             drift_shifted_ito, sigma_shifted_ito = drift_shifted, sigma_shifted
             _, euler_path = euler_maruyama_pathwise(incs, init=x2, drift=drift_shifted_ito,
                                                     sigma=sigma_shifted_ito,
@@ -112,13 +113,12 @@ def experiment(delta, N, M, fine):
     return sols, sol2
 
 
-deltas = 1/jnp.array([16,32,64,128,256,512,1024])
-Ns = 1/deltas
-fineN = Ns**1.0
-Mdeltas = jnp.ones((len(deltas),)) * (Ns)**0.
+deltas = 1 / jnp.array([16, 32, 64, 128, 256, 512, 1024])
+Ns = 1 / deltas
+fineN = Ns ** 1.0
+Mdeltas = jnp.ones((len(deltas),)) * (Ns) ** 0.
 T = 1.0
-Ndeltas = T/deltas
-
+Ndeltas = T / deltas
 
 print(prefix)
 for n in range(len(Ndeltas)):

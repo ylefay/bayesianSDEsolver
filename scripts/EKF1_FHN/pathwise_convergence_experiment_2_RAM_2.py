@@ -90,7 +90,7 @@ def experiment(delta, N, M, fine):
         traj2 = insert(traj2, 0, init, axis=0)
         return ts, traj, traj2
 
-    keys = jax.random.split(JAX_KEY, 10)
+    keys = jax.random.split(JAX_KEY, 100_000)
 
     prior = IOUP_transition_function(theta=0.0, sigma=1.0, dt=delta/M, q=1, dim=x0.shape[0])
     solver = partial(_solver, prior=prior, noise=None, sqrt=True)
@@ -119,7 +119,8 @@ def experiment(delta, N, M, fine):
 
     return sols, sol2
 
-deltas = 1/jnp.array([16])
+
+deltas = 1 / jnp.array([16, 32, 64, 128, 256, 512, 1024])
 Ns = 1/deltas
 fineN = Ns**1.0
 Mdeltas = jnp.ones((len(deltas),)) * (Ns)**0

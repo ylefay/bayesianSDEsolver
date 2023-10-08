@@ -112,7 +112,7 @@ def experiment(delta, N, M, fine):
     return sols, sol2
 
 
-deltas = 1/jnp.array([16,32,64,128,256,512,1024])
+deltas = 1 / jnp.array([16, 32, 64, 128, 256, 512, 1024])
 Ns = 1/deltas
 fineN = Ns**1.0
 Mdeltas = jnp.ones((len(deltas),)) * (Ns)**0.

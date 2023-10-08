@@ -9,7 +9,6 @@ def solver(key, init, delta, drift, diffusion, h, N, sqrt=False, prior=None, noi
     """
     Wrapper for EKF1 with new prior at each step.
     Including Brownian increments and Levy areas as part of the observation.
-    Using sqrt.
     """
     dim = init.shape[0]
 

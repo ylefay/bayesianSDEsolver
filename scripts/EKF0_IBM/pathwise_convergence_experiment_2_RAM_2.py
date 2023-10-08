@@ -12,6 +12,7 @@ from bayesian_sde_solver.sde_solvers import euler_maruyama_pathwise
 from bayesian_sde_solver.ode_solvers.probnum import IOUP_transition_function
 
 from bayesian_sde_solver.utils.ivp import ibm
+
 JAX_KEY = jax.random.PRNGKey(1337)
 
 solver_name = "EKF0_2"
@@ -71,8 +72,8 @@ def experiment(delta, N, M, fine):
             next_x = ode_int(sample_key, init=x1, vector_field=vector_field, T=delta)
             dt = delta / fine
             incs = coeffs_k[2]
-            #assuming additive noise
-            #drift_shifted_ito, sigma_shifted_ito = to_ito(drift_shifted, sigma_shifted)
+            # assuming additive noise
+            # drift_shifted_ito, sigma_shifted_ito = to_ito(drift_shifted, sigma_shifted)
             drift_shifted_ito, sigma_shifted_ito = drift_shifted, sigma_shifted
 
             _, euler_path = euler_maruyama_pathwise(incs, init=x2[0], drift=drift_shifted_ito, sigma=sigma_shifted_ito,
@@ -92,8 +93,9 @@ def experiment(delta, N, M, fine):
 
     keys = jax.random.split(JAX_KEY, 100_000)
 
-    prior = IOUP_transition_function(theta=0.0, sigma=1.0, dt=delta/M, q=1, dim=x0.shape[0])
+    prior = IOUP_transition_function(theta=0.0, sigma=1.0, dt=delta / M, q=1, dim=x0.shape[0])
     solver = partial(_solver, prior=prior, noise=None, sqrt=True)
+
     def wrapped(_key, init, vector_field, T):
         return solver(_key, init=init, vector_field=vector_field, h=T / M, N=M)
 
@@ -119,13 +121,13 @@ def experiment(delta, N, M, fine):
 
     return sols, sol2
 
-deltas = 1/jnp.array([16,32,64,128,256,512,1024])
-Ns = 1/deltas
-fineN = Ns**1.0
-Mdeltas = jnp.ones((len(deltas),)) * (Ns)**0
-T = 1.0
-Ndeltas = T/deltas
 
+deltas = 1 / jnp.array([16, 32, 64, 128, 256, 512, 1024])
+Ns = 1 / deltas
+fineN = Ns ** 1.0
+Mdeltas = jnp.ones((len(deltas),)) * (Ns) ** 0
+T = 1.0
+Ndeltas = T / deltas
 
 print(prefix)
 for n in range(len(Ndeltas)):

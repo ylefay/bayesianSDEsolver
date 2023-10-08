@@ -30,7 +30,7 @@ def _solver(init, drift, diffusion, delta, h, N, sqrt=True, EKF0=False, prior=No
 
     Evfvf = 4 / delta * diffusion(init, 0.0) @ diffusion(init, 0.0).T
     Evfw = diffusion(init, 0.0)
-    Evfi = - jnp.sqrt(6) / 2 * diffusion(init, 0.0)
+    Evfi = jnp.sqrt(6) / 2 * diffusion(init, 0.0)
 
     def block(i, j):
         return jnp.array([[0, 0, 0, 0],
@@ -44,7 +44,7 @@ def _solver(init, drift, diffusion, delta, h, N, sqrt=True, EKF0=False, prior=No
         H = jnp.array([[1, 0, 0, 0],
                        [0, 0, 0, 0],
                        [0, 0, 1 / delta, 0],
-                       [0, 0, 0, jnp.sqrt(6) * (2 * t / delta - 1) / delta]])
+                       [0, 0, 0, jnp.sqrt(6) * (1 - 2 * t / delta) / delta]])
         H = jnp.kron(jnp.eye(dim), H)
         return H
 
