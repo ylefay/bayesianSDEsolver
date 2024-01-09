@@ -1,6 +1,7 @@
 # Bayesian SDE solvers
 
-Companion code in JAX to the article *** by Yvann Le Fay, Simo Särkkä and Adrien Corenflos.
+Companion code in JAX to the article [preprint: Modelling pathwise uncertainty of Stochastic Differential Equations samplers via Probabilistic Numerics](https://arxiv.org/abs/2401.03338)
+ by Yvann Le Fay, Simo Särkkä and Adrien Corenflos.
 
 ## What is it?
 -----------
