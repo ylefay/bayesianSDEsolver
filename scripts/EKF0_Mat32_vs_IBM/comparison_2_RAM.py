@@ -9,18 +9,20 @@ from bayesian_sde_solver.ito_stratonovich import to_stratonovich
 from bayesian_sde_solver.ode_solvers import ekf0, ekf1
 from bayesian_sde_solver.sde_solvers import euler_maruyama_pathwise
 from bayesian_sde_solver.ode_solvers.probnum import IOUP_transition_function, matern_transition_function
-from bayesian_sde_solver.utils.ivp import double_ibm
+from bayesian_sde_solver.utils.ivp import double_ibm, ibm, fhn
 
 JAX_KEY = jax.random.PRNGKey(1337)
 
 solver_name = "EKF0"
-problem_name = "DoubleIBM"
+problem_name = "FHN"
 prefix = f"{solver_name}_{problem_name}"
 folder = "./"
 
 _solver = ekf0
 
+x0, drift, sigma, _ = ibm()
 x0, drift, sigma, _ = double_ibm()
+x0, drift, sigma, _, _ = fhn()
 drift_s, sigma_s = to_stratonovich(drift, sigma)
 init = x0
 
@@ -89,7 +91,7 @@ def experiment(delta, N, M, fine):
     keys = jax.random.split(JAX_KEY, 100_000)
 
     prior_ioup = IOUP_transition_function(theta=0., sigma=1.0, dt=delta / M, q=1, dim=x0.shape[0])
-    prior_mat = matern_transition_function(k=2, magnitude=1.0, length=1.0, dt=delta / M, dim=x0.shape[0])
+    prior_mat = matern_transition_function(k=1, magnitude=1.0, length=1.0, dt=delta / M, dim=x0.shape[0])
     solver = partial(_solver, noise=None, sqrt=True)
 
     def wrapped(_key, init, vector_field, T, prior):
@@ -128,9 +130,10 @@ for n in range(len(Ndeltas)):
     N = int(Ndeltas[n])
     M = int(Mdeltas[n])
     fine = int(fineN[n])
-    sols, sols_ioup, sols_mat = experiment(delta, N, M, fine)
+    with jax.disable_jit(True):
+        sols, sols_ioup, sols_mat = experiment(delta, N, M, fine)
     print(sols_ioup)
     print(sols_mat)
     jnp.save(f'{folder}/{prefix}_pathwise_sols_{N}_{fine}', sols)
     jnp.save(f'{folder}/{prefix}_IOUP_pathwise_sols2_{N}_{M}', sols_ioup)
-    jnp.save(f'{folder}/{prefix}_Matern52_pathwise_sols2_{N}_{M}', sols_mat)
+    jnp.save(f'{folder}/{prefix}_Matern32_pathwise_sols2_{N}_{M}', sols_mat)

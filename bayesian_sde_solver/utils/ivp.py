@@ -93,7 +93,7 @@ def double_ibm():
     Double integrated Brownian motion IVP.
     """
     sig = 1.0
-    x0 = jnp.ones((3,))
+    x0 = jnp.array([0., 0., 1.0])
 
     def drift(x, t):
         return jnp.array([[0., 1.0, 0.], [0., 0., 1.0], [0., 0., 0.]]) @ x
