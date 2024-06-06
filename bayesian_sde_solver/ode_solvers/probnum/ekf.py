@@ -10,13 +10,13 @@ def tria(A):
     return jnp.triu(r[:n, :n]).T
 
 
-def predict(x, A, Q_or_cholQ, lower_sqrt=False):
+def predict(x, A, Q_or_cholQ, xi, lower_sqrt=False):
     m, P_or_cholP = x
     if lower_sqrt:
         P_or_cholP = tria(jnp.concatenate([A @ P_or_cholP, Q_or_cholQ], axis=1))
-        return A @ m, P_or_cholP
+        return A @ m + xi, P_or_cholP
 
-    return A @ m, A @ P_or_cholP @ A.T + Q_or_cholQ
+    return A @ m + xi, A @ P_or_cholP @ A.T + Q_or_cholQ
 
 
 def update(x, c, H, R_or_cholR, lower_sqrt=False):
@@ -43,14 +43,14 @@ def update(x, c, H, R_or_cholR, lower_sqrt=False):
     return b, C
 
 
-def ekf(init, observation_function, A, Q_or_cholQ, R_or_cholR, params=None, lower_sqrt=False):
+def ekf(init, observation_function, A, Q_or_cholQ, xi, R_or_cholR, params=None, lower_sqrt=False):
     """
     Extended Kalman filter with optional lower square root implementation, such as Cholesky decomposition.
     See https://arxiv.org/abs/2207.00426.
     """
 
     def body(x, param):
-        x = predict(x, A, Q_or_cholQ, lower_sqrt)
+        x = predict(x, A, Q_or_cholQ, xi, lower_sqrt)
         m, _ = x
         y = (m,) if param is None else (m, *param)
         H = jax.jacfwd(observation_function, 0)(*y)

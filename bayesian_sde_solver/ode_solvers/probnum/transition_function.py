@@ -27,7 +27,7 @@ def transition_function(F: jnp.array, u: jnp.array, L: jnp.array, h: float, n_li
         return linalg.expm(F * s) @ u
 
     integrand_xi_values = integrand_xi(linspace)
-    xi = jnp.trapz(integrand_xi_values, linspace, axis=0)
+    xi = jnp.trapezoid(integrand_xi_values, linspace, axis=0)
 
     @jax.vmap
     def integrand_Q(s):
@@ -35,6 +35,6 @@ def transition_function(F: jnp.array, u: jnp.array, L: jnp.array, h: float, n_li
         return B @ B.T
 
     integrand_Q_values = integrand_Q(linspace)
-    Q = jnp.trapz(integrand_Q_values, linspace, axis=0)
+    Q = jnp.trapezoid(integrand_Q_values, linspace, axis=0)
 
     return xi, Q, A

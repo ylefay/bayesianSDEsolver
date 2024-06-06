@@ -83,7 +83,28 @@ def ibm():
 
     def var(t):
         return jnp.array([[t ** 3 / 3, t ** 2 / 2],
-                          [t ** 2 / 2, t]])
+                          [t ** 2 / 2, t]]) * sig ** 2
+
+    return x0, drift, sigma, var
+
+
+def double_ibm():
+    """
+    Double integrated Brownian motion IVP.
+    """
+    sig = 1.0
+    x0 = jnp.ones((3,))
+
+    def drift(x, t):
+        return jnp.array([[0., 1.0, 0.], [0., 0., 1.0], [0., 0., 0.]]) @ x
+
+    def sigma(x, t):
+        return jnp.array([[0.0], [0.0], [sig]])
+
+    def var(t):
+        return jnp.array([[t ** 5 / 20, t ** 4 / 8, t ** 3 / 6],
+                          [t ** 4 / 8, t ** 3 / 3, t ** 2 / 2],
+                          [t ** 3 / 6, t ** 2 / 2, t]]) * sig ** 2
 
     return x0, drift, sigma, var
 
