@@ -1,21 +1,23 @@
 from functools import partial
-from bayesian_sde_solver.utils import progress_bar
 
 import jax
 import jax.numpy as jnp
 
 from bayesian_sde_solver.foster_polynomial import get_approx_fine as _get_approx_fine
 from bayesian_sde_solver.ito_stratonovich import to_stratonovich
-from bayesian_sde_solver.ode_solvers import ekf0, ekf1
-from bayesian_sde_solver.sde_solvers import euler_maruyama_pathwise
+from bayesian_sde_solver.ode_solvers import ekf0
 from bayesian_sde_solver.ode_solvers.probnum import IOUP_transition_function, matern_transition_function
+from bayesian_sde_solver.ode_solvers.probnum import get_independently_factorized_prior, pad_prior
+from bayesian_sde_solver.sde_solvers import euler_maruyama_pathwise
+from bayesian_sde_solver.utils import progress_bar
 from bayesian_sde_solver.utils.ivp import double_ibm, ibm, fhn
 
 JAX_KEY = jax.random.PRNGKey(1337)
 
+order = 2
 solver_name = "EKF0"
 problem_name = "FHN"
-prefix = f"{solver_name}_{problem_name}"
+prefix = f"{solver_name}_{problem_name}_review"
 folder = "./"
 
 _solver = ekf0
@@ -88,11 +90,18 @@ def experiment(delta, N, M, fine):
         traj2 = insert(traj2, 0, init, axis=0)
         return ts, traj, traj2
 
-    keys = jax.random.split(JAX_KEY, 100_000)
+    keys = jax.random.split(JAX_KEY, 100_00)
 
-    prior_ioup = IOUP_transition_function(theta=0., sigma=1.0, dt=delta / M, q=1, dim=x0.shape[0])
-    prior_mat = matern_transition_function(k=1, magnitude=1.0, length=1.0, dt=delta / M, dim=x0.shape[0])
-    solver = partial(_solver, noise=None, sqrt=True)
+    prior_2_IBM = IOUP_transition_function(theta=1., sigma=1.0, dt=delta / M, q=2, dim=1)
+    prior_1_IBM = IOUP_transition_function(theta=1., sigma=1.0, dt=delta / M, q=1, dim=1)
+    prior_1_IBM = pad_prior(prior_1_IBM, q=2)
+    prior_2_mat = matern_transition_function(k=2, magnitude=1.0, length=jnp.sqrt(1.0 / 3.0), dt=delta / M, dim=1)
+    prior_1_mat = matern_transition_function(k=1, magnitude=1.0, length=1.0, dt=delta / M, dim=1)
+    prior_1_mat = pad_prior(prior_1_mat, q=2)
+
+    prior_IBM = get_independently_factorized_prior((prior_2_IBM, prior_1_IBM))
+    prior_mat = get_independently_factorized_prior((prior_2_mat, prior_1_mat))
+    solver = partial(_solver, noise=None, sqrt=False)
 
     def wrapped(_key, init, vector_field, T, prior):
         return solver(_key, init=init, vector_field=vector_field, h=T / M, N=M, prior=prior)
@@ -111,7 +120,8 @@ def experiment(delta, N, M, fine):
             ode_int=wrapped,
         )
 
-    linspaces, sols_ioup, sols = jax.vmap(partial(wrapped_filter_parabola, wrapped=partial(wrapped, prior=prior_ioup)))(keys)
+    linspaces, sols_ioup, sols = jax.vmap(partial(wrapped_filter_parabola, wrapped=partial(wrapped, prior=prior_IBM)))(
+        keys)
     _, sols_mat, _ = jax.vmap(partial(wrapped_filter_parabola, wrapped=partial(wrapped, prior=prior_mat)))(keys)
     return sols, sols_ioup, sols_mat
 
@@ -135,5 +145,5 @@ for n in range(len(Ndeltas)):
     print(sols_ioup)
     print(sols_mat)
     jnp.save(f'{folder}/{prefix}_pathwise_sols_{N}_{fine}', sols)
-    jnp.save(f'{folder}/{prefix}_IOUP_pathwise_sols2_{N}_{M}', sols_ioup)
-    jnp.save(f'{folder}/{prefix}_Matern32_pathwise_sols2_{N}_{M}', sols_mat)
+    jnp.save(f'{folder}/{prefix}_IOUP_{order}_pathwise_sols2_{N}_{M}', sols_ioup)
+    jnp.save(f'{folder}/{prefix}_Matern_{order}_pathwise_sols2_{N}_{M}', sols_mat)

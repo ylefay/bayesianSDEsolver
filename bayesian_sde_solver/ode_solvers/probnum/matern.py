@@ -9,7 +9,7 @@ from bayesian_sde_solver.ode_solvers.probnum.transition_function import \
 def transition_function(k: int, magnitude: float, length: float, dt: float, dim: int) -> Tuple[ArrayLike, ArrayLike,
 ArrayLike]:
     r"""
-    Closed formula for (k+1/2)-Matérn transition function.
+    (k+1/2)-Matérn transition function.
     Assuming same prior for each coordinate.
     Ref: Spatiotemporal Learning via Infinite-Dimensional Bayesian Filtering and Smoothing: A Look at Gaussian Process Regression Through Kalman Filtering (Sarkka, 2018),
     The Matérn Model: A Journey through Statistics, Numerical Analysis and Machine Learning, (Porcu, 2023).
@@ -38,7 +38,7 @@ ArrayLike]:
             \frac{\eta ^2 \left(e^{-2 h \lambda } (-2 h \lambda  (h \lambda +1)-1)+1\right)}{4 \lambda ^3} & \frac{1}{2} \eta ^2 h^2 e^{-2 h \lambda } \\
             \frac{1}{2} \eta ^2 h^2 e^{-2 h \lambda } & \frac{\eta ^2 e^{-2 h \lambda } \left(-2 h \lambda  (h \lambda -1)+e^{2 h \lambda }-1\right)}{4 \lambda } \\
         \end{pmatrix}
-    Otherwise, we use numerical integration to compute Q and Matrix Exponential to compute A.
+    Otherwise, we use matrix exponentiation to compute A and numreical integration to compute Q
     """
     nu = k + 0.5
     lambda_param = jnp.sqrt(2 * nu) / length
