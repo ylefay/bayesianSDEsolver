@@ -84,23 +84,24 @@ def experiment(delta, N, M, fine, no_samples):
 
     linspaces2, sols2 = jax.vmap(
         lambda _inc: euler_maruyama_pathwise(_inc, init=x0, drift=drift, sigma=sigma, h=dt, N=fine * shape_incs[1]))(
-        inc)
+        inc) # complete fine solution
     sampled_linspaces3, sols3 = jax.vmap(
         lambda _inc: euler_maruyama_pathwise(_inc, init=x0, drift=drift, sigma=sigma, h=delta,
                                              N=shape_incs[1]))(total_inc)  # approximate solution
-    sampled_linspaces2 = linspaces2[:, ::fine]  # fine solution
+    # subsampled fine solution
+    sampled_linspaces2 = linspaces2[:, ::fine]
     sampled_sols2 = sols2[:, ::fine, ...]
 
-    # We choose to keep only one path
+    # We choose to keep only one simulated path
     mean_gaussian_pn, var_gaussian_pn = sols[1][0], sols[2][0]
-    sols2 = sols2[0]
+    sols2 = sols2[0] # fine solution
     sols3 = sols3[0]
     sols_parabola_ode_euler = sols_parabola_ode_euler[0]
 
-    mean_gaussian_pn = mean_gaussian_pn[1:]
+    mean_gaussian_pn = mean_gaussian_pn[1:] # get rid of the initializations t=0
     var_gaussian_pn = var_gaussian_pn[1:]
 
-    n = mean_gaussian_pn.shape[0]
+    n = mean_gaussian_pn.shape[0] # number of time points
     dim = mean_gaussian_pn.shape[1]
     mean = jnp.hstack(mean_gaussian_pn)
     var = jnp.block([[var_gaussian_pn[i] if i == j else jnp.zeros((dim, dim)) for i in range(n)] for j in range(n)])
@@ -110,7 +111,8 @@ def experiment(delta, N, M, fine, no_samples):
         return mean + jlinalg.cholesky(var) @ jax.random.normal(key_sample, shape=mean.shape)
 
     KEY_SAMPLES = jax.random.split(JAX_KEY, no_samples)
-    sampled_sols = sample(KEY_SAMPLES).reshape((no_samples, n, dim))  # samples from PN
+    sampled_sols = sample(KEY_SAMPLES) # samples from PN posteriors
+    sampled_sols = sampled_sols.reshape((no_samples, n, dim)) # reshapping into (no_samples, n, dim) after collapsing the shape to ease the sampling procedure.
     return sampled_sols, mean_gaussian_pn, var_gaussian_pn, sols2, sols3, sols_parabola_ode_euler, inc, coeffs[0], \
            coeffs[1]
 
@@ -119,7 +121,7 @@ deltas = 1 / jnp.array([9])
 Ns = 1 / deltas
 fineN = Ns ** 1.0
 Mdeltas = jnp.ones((len(deltas),)) * (Ns) ** 0
-T = 1 / 3
+T = 1
 Ndeltas = T / deltas
 no_samples = 100
 for n in range(len(Ndeltas)):

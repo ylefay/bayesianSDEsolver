@@ -6,7 +6,7 @@ from bayesian_sde_solver.ode_solvers.ekf import _solver
 from bayesian_sde_solver.ode_solvers.probnum import interlace, interlace_matrix
 
 
-def solver(key, init, vector_field, h, N, sqrt=False, prior=None, noise=None):
+def solver(key, init, vector_field, h, N, sqrt=False, prior=None, noise=None, return_all=False):
     """
     Wrapper for EKF0 with the prior being initialized at the previous posterior.
     Hence, this solver leads to one prior for the whole trajectory.
@@ -37,4 +37,6 @@ def solver(key, init, vector_field, h, N, sqrt=False, prior=None, noise=None):
     else:
         sample = m
     s_0, m_0, P_00 = sample[::2], m[::2], P[::2, ::2]
+    if return_all:
+        return (s_0, m_0, P_00), (sample, m, P)
     return (s_0, m_0, P_00)  # return a sample as well as the law Y^0

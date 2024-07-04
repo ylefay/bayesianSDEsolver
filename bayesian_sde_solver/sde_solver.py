@@ -39,7 +39,7 @@ def sde_solver(
     ts = jnp.linspace(0, N * delta, N + 1)
 
     inps = jnp.arange(N), keys, ts[:-1]
-    _, samples = jax.lax.scan(body, init, inps)
-    traj, *coeffs = samples
+    _, out = jax.lax.scan(body, init, inps)
+    traj, *coeffs = out
     traj = insert(traj, 0, init, axis=0)
     return ts, traj, *coeffs
