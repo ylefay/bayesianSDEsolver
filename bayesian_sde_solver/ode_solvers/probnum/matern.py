@@ -1,12 +1,14 @@
-from typing import Tuple
 from math import comb
+from typing import Tuple
+
 import jax.numpy as jnp
 from numpy.typing import ArrayLike
+
 from bayesian_sde_solver.ode_solvers.probnum.transition_function import \
     transition_function as compute_transition_function
 
 
-def transition_function(k: int, magnitude: float, length: float, dt: float, dim: int) -> Tuple[ArrayLike, ArrayLike,
+def transition_function(k: int, magnitude: float, length: float, dt: float, dim: int, mc=False) -> Tuple[ArrayLike, ArrayLike,
 ArrayLike]:
     r"""
     (k+1/2)-Matérn transition function.
@@ -42,7 +44,7 @@ ArrayLike]:
     """
     nu = k + 0.5
     lambda_param = jnp.sqrt(2 * nu) / length
-    if nu == 3 / 2:
+    if nu == 3 / 2 and not mc:
         A = jnp.array([[jnp.exp(-dt * lambda_param) * (1 + dt * lambda_param), jnp.exp(- dt * lambda_param) * dt],
                        [-jnp.exp(-dt * lambda_param) * dt * lambda_param ** 2,
                         jnp.exp(-dt * lambda_param) * (1 - lambda_param * dt)]])
@@ -60,7 +62,7 @@ ArrayLike]:
     else:
         F = jnp.block(
             [[jnp.zeros(k).reshape((k, 1)), jnp.diag(jnp.ones(k))],
-             [jnp.array([-comb(k + 1, i) * lambda_param ** (-i + k + 1) for i in range(k + 1)]).reshape((1, k + 1))]]
+             [jnp.array([-comb(k + 1, i) * lambda_param ** (i - (k + 1)) for i in range(k + 1)]).reshape((1, k + 1))]]
         )
         L = jnp.append(jnp.array([0. for _ in range(k)]), jnp.array([magnitude])).reshape(k + 1, 1)
         m, Q, A = compute_transition_function(F, jnp.zeros(k + 1), L, dt)

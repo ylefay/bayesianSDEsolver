@@ -90,13 +90,13 @@ def experiment(delta, N, M, fine):
         traj2 = insert(traj2, 0, init, axis=0)
         return ts, traj, traj2
 
-    keys = jax.random.split(JAX_KEY, 100_00)
+    keys = jax.random.split(JAX_KEY, 100_000)
 
     prior_2_IBM = IOUP_transition_function(theta=1., sigma=1.0, dt=delta / M, q=2, dim=1)
     prior_1_IBM = IOUP_transition_function(theta=1., sigma=1.0, dt=delta / M, q=1, dim=1)
     prior_1_IBM = pad_prior(prior_1_IBM, q=2)
-    prior_2_mat = matern_transition_function(k=2, magnitude=1.0, length=jnp.sqrt(1.0 / 3.0), dt=delta / M, dim=1)
-    prior_1_mat = matern_transition_function(k=1, magnitude=1.0, length=1.0, dt=delta / M, dim=1)
+    prior_2_mat = matern_transition_function(k=2, magnitude=1.0, length=jnp.sqrt(5) / 3, dt=delta / M, dim=1)
+    prior_1_mat = matern_transition_function(k=1, magnitude=1.0, length=jnp.sqrt(3) / 2, dt=delta / M, dim=1, mc=True)
     prior_1_mat = pad_prior(prior_1_mat, q=2)
 
     prior_IBM = get_independently_factorized_prior((prior_2_IBM, prior_1_IBM))
@@ -126,8 +126,8 @@ def experiment(delta, N, M, fine):
     return sols, sols_ioup, sols_mat
 
 
-# deltas = 1/jnp.array([16,32,64,128,256,512,1024])
-deltas = 1 / jnp.array([16, 32, 64])
+deltas = 1 / jnp.array([16, 32, 64, 128, 256, 512, 1024])
+# deltas = 1 / jnp.array([16, 32, 64])
 Ns = 1 / deltas
 fineN = Ns ** 1.0
 Mdeltas = jnp.ones((len(deltas),)) * (Ns) ** 0.
