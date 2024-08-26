@@ -75,22 +75,22 @@ def experiment(delta, N, M, fine):
             #drift_shifted_ito, sigma_shifted_ito = to_ito(drift_shifted, sigma_shifted)
             drift_shifted_ito, sigma_shifted_ito = drift_shifted, sigma_shifted
 
-            _, euler_path = euler_maruyama_pathwise(incs, init=x2[0], drift=drift_shifted_ito, sigma=sigma_shifted_ito,
+            _, euler_path = euler_maruyama_pathwise(incs, init=x2, drift=drift_shifted_ito, sigma=sigma_shifted_ito,
                                                     h=dt, N=fine)
-            next_x2 = (euler_path[-1], next_x[1], next_x[2])
+            next_x2 = euler_path[-1]
             return (next_x, next_x2), (next_x, next_x2)
 
         keys = jax.random.split(key, N)
         ts = jnp.linspace(0, N * delta, N + 1)
 
         inps = jnp.arange(N), keys, ts[:-1]
-        _, samples = jax.lax.scan(body, (init, init), inps)
+        _, samples = jax.lax.scan(body, (init, init[0]), inps)
         traj, traj2 = samples
         traj = insert(traj, 0, init, axis=0)
-        traj2 = insert(traj2, 0, init, axis=0)
+        traj2 = insert(traj2, 0, init[0], axis=0)
         return ts, traj, traj2
 
-    keys = jax.random.split(JAX_KEY, 100_000)
+    keys = jax.random.split(JAX_KEY, 10)
 
     prior = IOUP_transition_function(theta=0.0, sigma=1.0, dt=delta/M, q=1, dim=x0.shape[0])
     solver = partial(_solver, prior=prior, noise=None, sqrt=True)
@@ -115,12 +115,12 @@ def experiment(delta, N, M, fine):
     linspaces, sols, sol2 = wrapped_filter_parabola(keys)
     if _solver in [ekf0_2, ekf1_2]:
         sols = sols[0]
-        sol2 = sol2[0]
 
     return sols, sol2
 
 
 deltas = 1 / jnp.array([16, 32, 64, 128, 256, 512, 1024])
+deltas = 1 / jnp.array([128])
 Ns = 1/deltas
 fineN = Ns**1.0
 Mdeltas = jnp.ones((len(deltas),)) * (Ns)**0

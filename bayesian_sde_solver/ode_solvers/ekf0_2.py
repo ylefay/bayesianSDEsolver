@@ -11,6 +11,7 @@ def solver(key, init, vector_field, h, N, sqrt=False, prior=None, noise=None, re
     Wrapper for EKF0 with the prior being initialized at the previous posterior.
     Hence, this solver leads to one prior for the whole trajectory.
     Algorithm 3.
+    n_states = 2.
     """
     _, m_0, P_00 = init
     dim = m_0.shape[0]
@@ -25,8 +26,12 @@ def solver(key, init, vector_field, h, N, sqrt=False, prior=None, noise=None, re
         interlace((m_0, vector_field(m_0, 0.0))),
         var
     )
-    filtered = _solver(init, vector_field, h, N, sqrt=sqrt, EKF0=True, prior=prior, noise=noise)
-    m, P = filtered
+    filtered = _solver(init, vector_field, h, N, sqrt=sqrt, EKF0=True, prior=prior, noise=noise, return_all=return_all)
+    if return_all:
+        x, z, S = filtered
+        m, P = x
+    else:
+        m, P = filtered
     if sqrt:
         sqrtP = P
         P = sqrtP @ sqrtP.T
@@ -38,5 +43,5 @@ def solver(key, init, vector_field, h, N, sqrt=False, prior=None, noise=None, re
         sample = m
     s_0, m_0, P_00 = sample[::2], m[::2], P[::2, ::2]
     if return_all:
-        return (s_0, m_0, P_00), (sample, m, P)
+        return (s_0, m_0, P_00), (sample, m, P, z, S)
     return (s_0, m_0, P_00)  # return a sample as well as the law Y^0

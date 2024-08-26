@@ -11,7 +11,8 @@ def solver(key, init, vector_field, h, N, sqrt=False, prior=None, noise=None):
     Wrapper for EKF0 with new prior at each step.
     Algorithm 2.
     """
-    n_states = int(prior[2].shape[0] / init.shape[0]) # assuming same order for each dimension... not general, but good enough. You can pad otherwise.
+    n_states = int(prior[2].shape[0] / init.shape[
+        0])  # assuming same order for each dimension... not general, but good enough. You can pad otherwise.
     dim = init.shape[0]
     # the first two cases are exact initialization
     if n_states == 2:
@@ -23,7 +24,7 @@ def solver(key, init, vector_field, h, N, sqrt=False, prior=None, noise=None):
     elif n_states == 3:
         # Zero initial variance
         init = (
-            interlace((init, vector_field(init, 0.0), jax.jacfwd(vector_field)(init, 0.0)@vector_field(init, 0.0))),
+            interlace((init, vector_field(init, 0.0), jax.jacfwd(vector_field)(init, 0.0) @ vector_field(init, 0.0))),
             jnp.zeros((n_states * dim, n_states * dim))
         )
     else:

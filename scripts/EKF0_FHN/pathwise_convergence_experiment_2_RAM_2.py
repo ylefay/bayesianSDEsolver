@@ -75,19 +75,19 @@ def experiment(delta, N, M, fine):
             #drift_shifted_ito, sigma_shifted_ito = to_ito(drift_shifted, sigma_shifted)
             drift_shifted_ito, sigma_shifted_ito = drift_shifted, sigma_shifted
 
-            _, euler_path = euler_maruyama_pathwise(incs, init=x2[0], drift=drift_shifted_ito, sigma=sigma_shifted_ito,
+            _, euler_path = euler_maruyama_pathwise(incs, init=x2, drift=drift_shifted_ito, sigma=sigma_shifted_ito,
                                                     h=dt, N=fine)
-            next_x2 = (euler_path[-1], next_x[1], next_x[2])
+            next_x2 = euler_path[-1]
             return (next_x, next_x2), (next_x, next_x2)
 
         keys = jax.random.split(key, N)
         ts = jnp.linspace(0, N * delta, N + 1)
 
         inps = jnp.arange(N), keys, ts[:-1]
-        _, samples = jax.lax.scan(body, (init, init), inps)
+        _, samples = jax.lax.scan(body, (init, init[0]), inps)
         traj, traj2 = samples
         traj = insert(traj, 0, init, axis=0)
-        traj2 = insert(traj2, 0, init, axis=0)
+        traj2 = insert(traj2, 0, init[0], axis=0)
         return ts, traj, traj2
 
     keys = jax.random.split(JAX_KEY, 100_000)

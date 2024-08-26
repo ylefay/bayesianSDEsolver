@@ -5,12 +5,14 @@ from bayesian_sde_solver.ode_solvers.probnum import IOUP_transition_function
 from bayesian_sde_solver.ode_solvers.probnum import ekf
 
 
-def _solver(init, vector_field, h, N, sqrt=False, EKF0=False, prior=None, noise=None, n_states=2):
+def _solver(init, vector_field, h, N, sqrt=False, EKF0=False, prior=None, noise=None, return_all=False, n_states=2):
     """
     EKF{0, 1} implementation.
     IBM prior by default.
     One derivative of the vector field is used, q = 1.
     No observation noise by default, R = 0.
+
+    return_all: bool, if True, then return the z_i's and S_i's (return_UC stands for return_uncertainty calibration).
 
     Partially supports more than 2 states (i.e., more than y and the vector field)
     """
@@ -45,6 +47,6 @@ def _solver(init, vector_field, h, N, sqrt=False, EKF0=False, prior=None, noise=
         transition_covariance = jnp.linalg.cholesky(transition_covariance)
 
     filtered = ekf(init=init, observation_function=observation_function, A=transition_matrix,
-                   Q_or_cholQ=transition_covariance, xi=transition_incr, R_or_cholR=noise, params=(ts,), lower_sqrt=sqrt)
+                   Q_or_cholQ=transition_covariance, xi=transition_incr, R_or_cholR=noise, params=(ts,), lower_sqrt=sqrt, return_UC=return_all)
 
     return filtered
