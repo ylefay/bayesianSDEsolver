@@ -149,7 +149,7 @@ def experiment(delta, N, M, fine, sigma_prior=1.0):
         coeffs[1], mle_diffusion_coeff
 
 
-deltas = 1 / jnp.array([20])
+deltas = 1 / jnp.array([25])
 Ns = 1 / deltas
 fineN = Ns ** 1.0
 Mdeltas = jnp.ones((len(deltas),)) * (Ns) ** 0
@@ -163,7 +163,7 @@ for n in range(len(Ndeltas)):
     fine = int(fineN[n])
 
     # Non calibrated
-    problem_name = "samples_from_prior_FHN_uncalibrated"
+    problem_name = "FHN_uncalibrated"
     prefix = f"{solver_name}_{problem_name}"
     mean, var, s_fine, s_em, s_parabola_ode, fine_incs, \
         incs, parabola_coeffs, mle_diffusion_coeff = experiment(delta, N, M, fine, sigma_prior=1.0)
@@ -179,7 +179,7 @@ for n in range(len(Ndeltas)):
     jnp.save(f'{folder}/{prefix}_parabola_coeffs_{N}_{fine}', parabola_coeffs)
 
     # Calibrated
-    problem_name = "samples_from_prior_FHN_calibrated"
+    problem_name = "FHN_calibrated"
     prefix = f"{solver_name}_{problem_name}"
     mean, var, s_fine, s_em, s_parabola_ode, fine_incs, \
         incs, parabola_coeffs, mle_diffusion_coeff = experiment(delta, N, M, fine, sigma_prior=mle_diffusion_coeff**0.5)
@@ -189,7 +189,7 @@ for n in range(len(Ndeltas)):
     jnp.save(f'{folder}/{prefix}_pathwise_sols2_{N}_{fine}', s_fine)
     jnp.save(f'{folder}/{prefix}_pathwise_sols3_{N}_{fine}', s_em)
     jnp.save(f'{folder}/{prefix}_pathwise_sols4_parabola_ode_{N}_{fine}', s_parabola_ode)
-
+    #Euler Maruyama solutions
     jnp.save(f'{folder}/{prefix}_fine_incs_{N}_{fine}', fine_incs)
     jnp.save(f'{folder}/{prefix}_incs_{N}_{fine}', incs)
     jnp.save(f'{folder}/{prefix}_parabola_coeffs_{N}_{fine}', parabola_coeffs)
