@@ -64,7 +64,8 @@ def ekf(init, observation_function, A, Q_or_cholQ, xi, R_or_cholR, params=None, 
         x, S_or_cholS = update(x, c, H, R_or_cholR, lower_sqrt,
                                return_S=True)
         if lower_sqrt:
-            S_or_cholS = S_or_cholS @ S_or_cholS
+            S_or_cholS = S_or_cholS @ S_or_cholS.T
+            #S_or_cholS = S_or_cholS
         return (x, S_or_cholS, c), None
 
     def body(inps, param):

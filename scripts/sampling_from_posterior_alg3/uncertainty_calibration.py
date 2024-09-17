@@ -15,7 +15,7 @@ from bayesian_sde_solver.sde_solver import sde_solver
 from bayesian_sde_solver.sde_solvers import euler_maruyama
 from bayesian_sde_solver.sde_solvers import euler_maruyama_pathwise
 from bayesian_sde_solver.utils import insert, progress_bar
-from bayesian_sde_solver.utils.ivp import fhn
+from bayesian_sde_solver.utils.ivp import fhn, gbm
 
 JAX_KEY = jax.random.PRNGKey(1337)
 keys = jax.random.split(JAX_KEY, 2)
@@ -149,7 +149,7 @@ def experiment(delta, N, M, fine, sigma_prior=1.0):
         coeffs[1], mle_diffusion_coeff
 
 
-deltas = 1 / jnp.array([25])
+deltas = 1 / jnp.array([50])
 Ns = 1 / deltas
 fineN = Ns ** 1.0
 Mdeltas = jnp.ones((len(deltas),)) * (Ns) ** 0

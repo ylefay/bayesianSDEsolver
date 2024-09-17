@@ -13,7 +13,10 @@ def mle_diffusion(zs: ArrayLike, Ss: ArrayLike):
 
     @jax.vmap
     def _sum(z, S):
-        return z.T @ jnp.linalg.pinv(S) @ z
+        temp = jax.scipy.linalg.solve(S, z)
+        return jnp.dot(z, temp)
+        #temp = jax.scipy.linalg.solve_triangular(S, z, lower=True) #assuming S is cholesky
+        #return jnp.dot(temp, temp)
 
     mle = jnp.sum(_sum(zs, Ss)) / (N * dim)  # Assuming we scale the variance of the d-dimensional problem by the same coeff. then we must divide by d
     return mle
