@@ -3,7 +3,6 @@ from typing import Callable, Tuple
 
 import jax
 import jax.numpy as jnp
-import jax.scipy.linalg as jlinalg
 from numpy.typing import ArrayLike
 
 from bayesian_sde_solver.foster_polynomial import get_approx_fine as _get_approx_fine
@@ -15,7 +14,6 @@ from bayesian_sde_solver.sde_solver import sde_solver
 from bayesian_sde_solver.sde_solvers import euler_maruyama
 from bayesian_sde_solver.sde_solvers import euler_maruyama_pathwise
 from bayesian_sde_solver.utils import insert, progress_bar
-from bayesian_sde_solver.utils.ivp import fhn, gbm
 
 JAX_KEY = jax.random.PRNGKey(1337)
 keys = jax.random.split(JAX_KEY, 2)
@@ -66,7 +64,11 @@ def custom_sde_solver(
     return ts, traj, coeffs, others
 
 
-x0, drift, sigma, _, _ = fhn()
+# defining ivp
+x0 = jnp.array([0.1])
+drift = lambda x, t: 0.5 * x * (1 - x)
+sigma = lambda x, t: jnp.array([[0.0]])
+
 drift_s, sigma_s = to_stratonovich(drift, sigma)
 
 init = x0
@@ -144,12 +146,13 @@ def experiment(delta, N, M, fine, sigma_prior=1.0):
 
     # Computing the MLE diffusion coefficients
     mle_diffusion_coeff = mle_diffusion(mean_error_measurement, var_error_measurement)
-    print(f"estimated mle diffusion coefficient: {mle_diffusion_coeff}")
+    print(f"estimated mle diffusion coefficient: {mle_diffusion_coeff**0.5}")
+    print(mean_gaussian_pn)
     return mean_gaussian_pn, var_gaussian_pn, sols2, sols3, sols_parabola_ode_euler, inc, coeffs[0], \
         coeffs[1], mle_diffusion_coeff
 
 
-deltas = 1 / jnp.array([50])
+deltas = 1 / jnp.array([1.0])
 Ns = 1 / deltas
 fineN = Ns ** 1.0
 Mdeltas = jnp.ones((len(deltas),)) * (Ns) ** 0
@@ -166,30 +169,4 @@ for n in range(len(Ndeltas)):
     problem_name = "FHN_uncalibrated"
     prefix = f"{solver_name}_{problem_name}"
     mean, var, s_fine, s_em, s_parabola_ode, fine_incs, \
-        incs, parabola_coeffs, mle_diffusion_coeff = experiment(delta, N, M, fine, sigma_prior=jnp.sqrt(10))
-    #jnp.save(f'{folder}/{prefix}_sampled_sols_{N}_{M}', sampled_sols)
-    jnp.save(f'{folder}/{prefix}_mean_pn_{N}_{M}', mean)
-    jnp.save(f'{folder}/{prefix}_var_pn_{N}_{M}', var)
-    jnp.save(f'{folder}/{prefix}_pathwise_sols2_{N}_{fine}', s_fine)
-    jnp.save(f'{folder}/{prefix}_pathwise_sols3_{N}_{fine}', s_em)
-    jnp.save(f'{folder}/{prefix}_pathwise_sols4_parabola_ode_{N}_{fine}', s_parabola_ode)
-
-    jnp.save(f'{folder}/{prefix}_fine_incs_{N}_{fine}', fine_incs)
-    jnp.save(f'{folder}/{prefix}_incs_{N}_{fine}', incs)
-    jnp.save(f'{folder}/{prefix}_parabola_coeffs_{N}_{fine}', parabola_coeffs)
-
-    # Calibrated
-    problem_name = "FHN_calibrated"
-    prefix = f"{solver_name}_{problem_name}"
-    mean, var, s_fine, s_em, s_parabola_ode, fine_incs, \
-        incs, parabola_coeffs, mle_diffusion_coeff = experiment(delta, N, M, fine, sigma_prior=mle_diffusion_coeff**0.5)
-    # jnp.save(f'{folder}/{prefix}_sampled_sols_{N}_{M}', sampled_sols)
-    jnp.save(f'{folder}/{prefix}_mean_pn_{N}_{M}', mean)
-    jnp.save(f'{folder}/{prefix}_var_pn_{N}_{M}', var)
-    jnp.save(f'{folder}/{prefix}_pathwise_sols2_{N}_{fine}', s_fine)
-    jnp.save(f'{folder}/{prefix}_pathwise_sols3_{N}_{fine}', s_em)
-    jnp.save(f'{folder}/{prefix}_pathwise_sols4_parabola_ode_{N}_{fine}', s_parabola_ode)
-    #Euler Maruyama solutions
-    jnp.save(f'{folder}/{prefix}_fine_incs_{N}_{fine}', fine_incs)
-    jnp.save(f'{folder}/{prefix}_incs_{N}_{fine}', incs)
-    jnp.save(f'{folder}/{prefix}_parabola_coeffs_{N}_{fine}', parabola_coeffs)
+        incs, parabola_coeffs, mle_diffusion_coeff = experiment(delta, N, M, fine, sigma_prior=1.0)
